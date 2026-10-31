@@ -1,0 +1,220 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}{{ 'Edit invoice' if invoice else 'Create invoice' }}{% endblock %}
+{% block page_heading %}{{ 'Edit invoice' if invoice else 'Create invoice' }}{% endblock %}
+{% block page_description %}Add customer details, invoice items, and payment terms.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/invoices.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="invoice-page">
+
+    <form method="POST"
+          action="{{ url_for('invoices.edit_invoice', invoice_id=invoice.id) if invoice else url_for('invoices.create_invoice') }}"
+          class="invoice-form"
+          id="invoiceForm">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="invoice-form-grid">
+
+            <section class="invoice-panel">
+                <div class="invoice-panel-heading">
+                    <h3>Invoice information</h3>
+                    <p>Choose the customer and invoice dates.</p>
+                </div>
+
+                <div class="invoice-field">
+                    <label for="customer_id">Customer <span class="required">*</span></label>
+                    <select id="customer_id" name="customer_id" required>
+                        <option value="">Select customer</option>
+                        {% for customer in customers %}
+                        <option value="{{ customer.id }}"
+                            {% if invoice and invoice.customer_id == customer.id %}selected{% endif %}>
+                            {{ customer.company_name or customer.user.name }} — {{ customer.user.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="invoice-field">
+                    <label for="subscription_id">Subscription</label>
+                    <select id="subscription_id" name="subscription_id">
+                        <option value="">Direct invoice</option>
+                        {% for subscription in subscriptions %}
+                        <option value="{{ subscription.id }}"
+                            {% if invoice and invoice.subscription_id == subscription.id %}selected{% endif %}>
+                            {{ subscription.number }} — {{ subscription.customer.user.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small>Optional. Link this invoice to an existing subscription.</small>
+                </div>
+
+                <div class="invoice-two-columns">
+                    <div class="invoice-field">
+                        <label for="issue_date">Issue date <span class="required">*</span></label>
+                        <input
+                            type="date"
+                            id="issue_date"
+                            name="issue_date"
+                            value="{{ invoice.issue_date.isoformat() if invoice else today.isoformat() }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="invoice-field">
+                        <label for="due_date">Due date <span class="required">*</span></label>
+                        <input
+                            type="date"
+                            id="due_date"
+                            name="due_date"
+                            value="{{ invoice.due_date.isoformat() if invoice else default_due_date.isoformat() }}"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="invoice-field">
+                    <label>Currency</label>
+                    <input type="text" value="INR (₹)" readonly>
+                    <small>Invoices currently use Indian Rupees.</small>
+                </div>
+
+                <div class="invoice-field">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" rows="4"
+                              placeholder="Additional information for this invoice...">{{ invoice.notes if invoice and invoice.notes else '' }}</textarea>
+                </div>
+            </section>
+
+            <section class="invoice-panel invoice-items-panel">
+                <div class="invoice-panel-heading">
+                    <h3>Invoice items</h3>
+                    <p>Add products or custom line items.</p>
+                </div>
+
+                <div class="invoice-items-header">
+                    <span>Product / Description</span>
+                    <span>Qty</span>
+                    <span>Unit price</span>
+                    <span>Tax %</span>
+                    <span></span>
+                </div>
+
+                <div id="invoiceItems">
+                    {% if invoice and invoice.lines %}
+                        {% for line in invoice.lines %}
+                        <div class="invoice-item-row">
+                            <div class="invoice-item-description">
+                                <select name="product_id[]" class="item-product">
+                                    <option value="">Custom item</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}"
+                                            data-price="{{ product.sales_price }}"
+                                            {% if line.product_id == product.id %}selected{% endif %}>
+                                        {{ product.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <input type="text" name="description[]" placeholder="Description"
+                                       value="{{ line.description }}" required>
+                            </div>
+
+                            <input type="number" name="quantity[]" class="item-quantity"
+                                   min="0.01" step="0.01" value="{{ line.quantity }}" required>
+
+                            <input type="number" name="unit_price[]" class="item-price"
+                                   min="0" step="0.01" value="{{ line.unit_price }}" required>
+
+                            <input type="number" name="tax_percentage[]" class="item-tax"
+                                   min="0" max="100" step="0.01"
+                                   value="{{ line.tax_percentage }}" required>
+
+                            <button type="button" class="remove-invoice-item" title="Remove item">×</button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="invoice-item-row">
+                            <div class="invoice-item-description">
+                                <select name="product_id[]" class="item-product">
+                                    <option value="">Custom item</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}" data-price="{{ product.sales_price }}">
+                                        {{ product.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <input type="text" name="description[]" placeholder="Description" required>
+                            </div>
+
+                            <input type="number" name="quantity[]" class="item-quantity"
+                                   min="0.01" step="0.01" value="1" required>
+
+                            <input type="number" name="unit_price[]" class="item-price"
+                                   min="0" step="0.01" value="0.00" required>
+
+                            <input type="number" name="tax_percentage[]" class="item-tax"
+                                   min="0" max="100" step="0.01" value="0" required>
+
+                            <button type="button" class="remove-invoice-item" title="Remove item">×</button>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="invoice-items-footer">
+                    <button type="button" id="addInvoiceItem" class="invoice-btn invoice-btn-secondary">
+                        + Add item
+                    </button>
+                </div>
+
+                <div class="invoice-totals">
+                    <div class="invoice-total-row">
+                        <span>Subtotal</span>
+                        <strong id="subtotalDisplay">₹0.00</strong>
+                    </div>
+
+                    <div class="invoice-total-row">
+                        <span>Tax</span>
+                        <strong id="taxDisplay">₹0.00</strong>
+                    </div>
+
+                    <div class="invoice-total-row invoice-discount-row">
+                        <label for="discount_amount">Discount amount (₹)</label>
+                        <input
+                            type="number"
+                            id="discount_amount"
+                            name="discount_amount"
+                            min="0"
+                            step="0.01"
+                            value="{{ invoice.discount_amount if invoice else '0.00' }}"
+                        >
+                    </div>
+
+                    <div class="invoice-total-row invoice-grand-total">
+                        <span>Total</span>
+                        <strong id="totalDisplay">₹0.00</strong>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <div class="invoice-form-actions">
+            <a href="{{ url_for('invoices.invoice_detail', invoice_id=invoice.id) if invoice else url_for('invoices.list_invoices') }}"
+               class="invoice-btn invoice-btn-light">Cancel</a>
+
+            <button type="submit" class="invoice-btn invoice-btn-primary">
+                {{ 'Save changes' if invoice else 'Create draft invoice' }}
+            </button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/invoices.js') }}" defer></script>
+{% endblock %}

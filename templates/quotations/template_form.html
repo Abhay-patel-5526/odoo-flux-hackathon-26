@@ -1,0 +1,191 @@
+{% extends "dashboard/_layout.html" %}
+
+{% set is_edit = template is not none %}
+
+{% block page_title %}
+{{ 'Edit Template' if is_edit else 'New Template' }}
+{% endblock %}
+
+{% block page_heading %}
+{{ 'Edit Quotation Template' if is_edit else 'Create Quotation Template' }}
+{% endblock %}
+
+{% block page_description %}
+Configure reusable quotation details and predefined products.
+{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quotations.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<form method="POST"
+    action="{{ url_for('quotations.edit_template', template_id=template.id) if is_edit else url_for('quotations.create_template') }}"
+    class="product-form quotation-form" id="quotation-template-form">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-section">
+        <h3>Template Information</h3>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label for="name">Template Name *</label>
+                <input type="text" name="name" id="name" maxlength="180" value="{{ template.name if is_edit else '' }}"
+                    placeholder="e.g. Standard Monthly Subscription" required>
+            </div>
+
+            <div class="form-group">
+                <label for="validity_days">Validity (Days) *</label>
+                <input type="number" name="validity_days" id="validity_days" min="1"
+                    value="{{ template.validity_days if is_edit else 15 }}" required>
+            </div>
+
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Template Notes</label>
+            <textarea name="notes" id="notes" rows="4"
+                placeholder="Describe when this template should be used...">{{ template.notes if is_edit else '' }}</textarea>
+        </div>
+
+        {% if is_edit %}
+        <div class="form-group checkbox-group">
+            <label>
+                <input type="checkbox" name="is_active" value="1" {% if not is_edit or template.is_active %}checked{%
+                    endif %}>
+                Template is active
+            </label>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="form-section">
+
+        <div class="form-section-header">
+            <h3>Predefined Product Lines</h3>
+
+            <button type="button" class="btn btn-secondary" id="add-template-line">
+                + Add Product
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table quotation-lines-table">
+                <thead>
+                    <tr>
+                        <th>Product *</th>
+                        <th>Plan (Optional)</th>
+                        <th>Quantity *</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody id="template-lines">
+
+                    {% if is_edit and template.lines %}
+                    {% for line in template.lines %}
+                    <tr class="template-line">
+                        <td>
+                            <select name="product_id[]" class="template-product" required>
+                                <option value="">Select product</option>
+
+                                {% for product in products %}
+                                <option value="{{ product.id }}" {% if line.product_id==product.id %}selected{% endif
+                                    %}>
+                                    {{ product.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        <td>
+                            <select name="plan_id[]" class="template-plan">
+                                <option value="">No plan</option>
+
+                                {% for plan in plans %}
+                                <option value="{{ plan.id }}" data-product-id="{{ plan.product_id }}" {% if
+                                    line.plan_id==plan.id %}selected{% endif %}>
+                                    {{ plan.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        <td>
+                            <input type="number" name="quantity[]" min="1" value="{{ line.quantity }}" required>
+                        </td>
+
+                        <td>
+                            <button type="button" class="remove-line-btn" aria-label="Remove product">
+                                &times;
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+
+                </tbody>
+            </table>
+        </div>
+
+        <template id="template-line-template">
+            <tr class="template-line">
+                <td>
+                    <select name="product_id[]" class="template-product" required>
+                        <option value="">Select product</option>
+
+                        {% for product in products %}
+                        <option value="{{ product.id }}">
+                            {{ product.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+
+                <td>
+                    <select name="plan_id[]" class="template-plan">
+                        <option value="">No plan</option>
+
+                        {% for plan in plans %}
+                        <option value="{{ plan.id }}" data-product-id="{{ plan.product_id }}">
+                            {{ plan.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+
+                <td>
+                    <input type="number" name="quantity[]" min="1" value="1" required>
+                </td>
+
+                <td>
+                    <button type="button" class="remove-line-btn" aria-label="Remove product">
+                        &times;
+                    </button>
+                </td>
+            </tr>
+        </template>
+
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ url_for('quotations.list_templates') }}" class="btn btn-secondary">
+            Cancel
+        </a>
+
+        <button type="submit" class="btn btn-primary">
+            {{ 'Save Changes' if is_edit else 'Create Template' }}
+        </button>
+    </div>
+
+</form>
+
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/quotations.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,347 @@
+/* =========================================
+   BRIGHTLOOP - RECURRING BILLING
+========================================= */
+
+.billing-page {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    width: 100%;
+}
+
+.billing-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.billing-toolbar h3,
+.billing-panel-heading h3 {
+    margin: 0 0 6px;
+    color: #202938;
+    font-size: 18px;
+}
+
+.billing-toolbar p,
+.billing-panel-heading p {
+    margin: 0;
+    color: #788397;
+    font-size: 13px;
+}
+
+/* Buttons */
+
+.billing-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 9px 16px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.billing-btn-primary {
+    background: #3157d5;
+    color: #fff;
+}
+
+.billing-btn-primary:hover {
+    background: #2446b8;
+    color: #fff;
+}
+
+.billing-btn-secondary {
+    background: #edf1ff;
+    color: #294bb8;
+    border-color: #dce4ff;
+}
+
+.billing-btn-secondary:hover {
+    background: #e0e7ff;
+}
+
+.billing-btn-light {
+    background: #fff;
+    color: #394456;
+    border-color: #d9dee7;
+}
+
+.billing-btn-light:hover {
+    background: #f5f7fa;
+}
+
+/* Statistics */
+
+.billing-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.billing-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 21px;
+    background: #fff;
+    border: 1px solid #e5e9f0;
+    border-radius: 12px;
+}
+
+.billing-stat-label {
+    color: #788397;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.billing-stat-card strong {
+    color: #202938;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.billing-stat-description {
+    color: #8792a5;
+    font-size: 12px;
+}
+
+/* Panels */
+
+.billing-panel {
+    padding: 22px;
+    background: #fff;
+    border: 1px solid #e5e9f0;
+    border-radius: 12px;
+}
+
+.billing-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.billing-count {
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: #f0f2f6;
+    color: #596273;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Tables */
+
+.billing-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.billing-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.billing-table th {
+    padding: 13px 12px;
+    background: #f7f8fb;
+    color: #657084;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.billing-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #edf0f4;
+    color: #354052;
+    vertical-align: middle;
+}
+
+.billing-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.billing-table td strong {
+    color: #202938;
+}
+
+.billing-link {
+    color: #3157d5;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.billing-link:hover {
+    text-decoration: underline;
+}
+
+.billing-muted {
+    color: #8792a5;
+}
+
+/* Statuses */
+
+.billing-status {
+    display: inline-flex;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.billing-status-active {
+    background: #e4f7ec;
+    color: #197344;
+}
+
+.billing-status-confirmed {
+    background: #e6efff;
+    color: #2457a7;
+}
+
+.billing-status-paused {
+    background: #fff5df;
+    color: #96630d;
+}
+
+.billing-status-draft {
+    background: #f0f1f4;
+    color: #596273;
+}
+
+.billing-status-closed,
+.billing-status-cancelled {
+    background: #fce8e8;
+    color: #a52b2b;
+}
+
+/* Generate area */
+
+.billing-generate-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding: 17px;
+    background: #f7f8fc;
+    border: 1px solid #e9edf5;
+    border-radius: 9px;
+}
+
+.billing-generate-area strong {
+    color: #202938;
+    font-size: 14px;
+}
+
+.billing-generate-area p {
+    margin: 5px 0 0;
+    color: #788397;
+    font-size: 12px;
+}
+
+.billing-generate-area form {
+    margin: 0;
+}
+
+/* Filters */
+
+.billing-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.billing-filter-form input {
+    width: min(320px, 100%);
+}
+
+.billing-filter-form input,
+.billing-filter-form select {
+    min-height: 40px;
+    padding: 9px 11px;
+    border: 1px solid #d9dee7;
+    border-radius: 8px;
+    background: #fff;
+    color: #202938;
+    font: inherit;
+    font-size: 14px;
+}
+
+/* Empty state */
+
+.billing-empty {
+    padding: 45px 20px;
+    text-align: center;
+}
+
+.billing-empty-icon {
+    margin-bottom: 10px;
+    color: #197344;
+    font-size: 36px;
+}
+
+.billing-empty h3 {
+    margin: 0 0 8px;
+    color: #202938;
+}
+
+.billing-empty p {
+    margin: 0;
+    color: #788397;
+    font-size: 13px;
+}
+
+/* Responsive */
+
+@media (max-width: 750px) {
+    .billing-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .billing-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .billing-panel {
+        padding: 15px;
+    }
+
+    .billing-panel-heading {
+        align-items: flex-start;
+    }
+
+    .billing-toolbar {
+        align-items: flex-start;
+    }
+
+    .billing-generate-area {
+        align-items: stretch;
+    }
+
+    .billing-generate-area form,
+    .billing-generate-area button {
+        width: 100%;
+    }
+}

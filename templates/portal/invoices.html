@@ -1,0 +1,109 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}My Invoices{% endblock %}
+{% block page_heading %}My Invoices{% endblock %}
+{% block page_description %}View your invoices, payment status and outstanding balances.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/portal.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="portal-page">
+
+    <div class="portal-toolbar">
+        <div>
+            <h3>Invoice history</h3>
+            <p>All invoices associated with your account.</p>
+        </div>
+
+        <a href="{{ url_for('portal.dashboard') }}" class="portal-btn portal-btn-light">
+            ← My account
+        </a>
+    </div>
+
+    <section class="portal-panel">
+
+        <form method="GET" action="{{ url_for('portal.invoices') }}" class="portal-filter-form">
+            <input
+                type="search"
+                name="search"
+                value="{{ request.args.get('search', '') }}"
+                placeholder="Search invoice number..."
+            >
+
+            <select name="status">
+                <option value="">All statuses</option>
+                {% for status in ['draft', 'confirmed', 'paid', 'overdue', 'cancelled'] %}
+                <option value="{{ status }}"
+                    {% if request.args.get('status') == status %}selected{% endif %}>
+                    {{ status|title }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="portal-btn portal-btn-secondary">Filter</button>
+
+            <a href="{{ url_for('portal.invoices') }}" class="portal-btn portal-btn-light">Clear</a>
+        </form>
+
+        {% if invoices %}
+        <div class="portal-table-wrap">
+            <table class="portal-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Issue date</th>
+                        <th>Due date</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Outstanding</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td><strong>{{ invoice.number }}</strong></td>
+
+                        <td>{{ invoice.issue_date.strftime('%d %b %Y') }}</td>
+
+                        <td>{{ invoice.due_date.strftime('%d %b %Y') }}</td>
+
+                        <td>₹{{ "%.2f"|format(invoice.total) }}</td>
+
+                        <td>₹{{ "%.2f"|format(invoice.paid_amount) }}</td>
+
+                        <td>₹{{ "%.2f"|format(invoice.outstanding_amount) }}</td>
+
+                        <td>
+                            <span class="portal-status portal-status-{{ 'overdue' if invoice.is_overdue else invoice.status }}">
+                                {{ 'Overdue' if invoice.is_overdue else invoice.status.replace('_', ' ')|title }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <a href="{{ url_for('portal.invoice_detail', invoice_id=invoice.id) }}"
+                               class="portal-text-link">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <div class="portal-empty">
+            <h3>No invoices found</h3>
+            <p>Your invoices will appear here when they are generated.</p>
+        </div>
+        {% endif %}
+
+    </section>
+</div>
+{% endblock %}
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/portal.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Quotations{% endblock %}
+{% block page_heading %}Quotations{% endblock %}
+{% block page_description %}Create, manage and track customer quotations.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quotations.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="page-toolbar">
+    <form method="GET" action="{{ url_for('quotations.list_quotations') }}"
+          class="search-form">
+        <input
+            type="search"
+            name="q"
+            value="{{ search or '' }}"
+            placeholder="Search quotation number or customer..."
+        >
+
+        <select name="status">
+            <option value="all" {% if status == 'all' %}selected{% endif %}>All statuses</option>
+            <option value="draft" {% if status == 'draft' %}selected{% endif %}>Draft</option>
+            <option value="sent" {% if status == 'sent' %}selected{% endif %}>Sent</option>
+            <option value="accepted" {% if status == 'accepted' %}selected{% endif %}>Accepted</option>
+            <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rejected</option>
+            <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option>
+            <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+
+        <button type="submit" class="btn btn-secondary">Filter</button>
+    </form>
+
+    <div class="toolbar-actions">
+        <a href="{{ url_for('quotations.list_templates') }}" class="btn btn-secondary">
+            Quotation Templates
+        </a>
+
+        <a href="{{ url_for('quotations.create_quotation') }}" class="btn btn-primary">
+            + New Quotation
+        </a>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Quotation</th>
+                    <th>Customer</th>
+                    <th>Issue Date</th>
+                    <th>Valid Until</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for quotation in quotations %}
+                <tr>
+                    <td>
+                        <strong>{{ quotation.number }}</strong>
+                    </td>
+
+                    <td>
+                        {{ quotation.customer.user.name }}
+                        {% if quotation.customer.company_name %}
+                            <small>{{ quotation.customer.company_name }}</small>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ quotation.issue_date.strftime('%d %b %Y') }}</td>
+                    <td>{{ quotation.valid_until.strftime('%d %b %Y') }}</td>
+
+                    <td>
+                        {{ quotation.currency }} {{ "%.2f"|format(quotation.total) }}
+                    </td>
+
+                    <td>
+                        <span class="status-badge status-{{ quotation.status }}">
+                            {{ quotation.status|title }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <a href="{{ url_for('quotations.quotation_detail', quotation_id=quotation.id) }}"
+                           class="table-action">
+                            View
+                        </a>
+
+                        {% if quotation.status == 'draft' %}
+                        <a href="{{ url_for('quotations.edit_quotation', quotation_id=quotation.id) }}"
+                           class="table-action">
+                            Edit
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <div class="empty-state-content">
+                            <h3>No quotations found</h3>
+                            <p>Create your first quotation to get started.</p>
+
+                            <a href="{{ url_for('quotations.create_quotation') }}"
+                               class="btn btn-primary">
+                                Create Quotation
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

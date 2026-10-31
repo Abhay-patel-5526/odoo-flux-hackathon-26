@@ -1,0 +1,281 @@
+
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block page_heading %}My Dashboard{% endblock %}
+
+{% block page_description %}
+Welcome back, {{ current_user.name }}! Here's your subscription overview.
+{% endblock %}
+
+
+{% block dashboard_content %}
+
+<!-- Welcome section -->
+<div class="section-heading">
+    <div>
+        <h3>Account Overview</h3>
+        <p>
+            {% if current_user.customer_profile and current_user.customer_profile.company_name %}
+                {{ current_user.customer_profile.company_name }}
+            {% else %}
+                Manage your subscriptions and billing in one place.
+            {% endif %}
+        </p>
+    </div>
+
+    <a href="#" class="btn">
+        Explore Plans →
+    </a>
+</div>
+
+
+<!-- Statistics -->
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Active Subscriptions</span>
+            <span class="stat-icon">◇</span>
+        </div>
+
+        <h3>{{ active_subscriptions|length }}</h3>
+        <p class="stat-note">Currently active</p>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Pending Invoices</span>
+            <span class="stat-icon">▤</span>
+        </div>
+
+        <h3>{{ pending_invoices|length }}</h3>
+        <p class="stat-note">Require your attention</p>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Recent Invoices</span>
+            <span class="stat-icon">▣</span>
+        </div>
+
+        <h3>{{ recent_invoices|length }}</h3>
+        <p class="stat-note">Latest billing records</p>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Account Status</span>
+            <span class="stat-icon">✓</span>
+        </div>
+
+        <h3>Active</h3>
+        <p class="stat-note">Your account is enabled</p>
+    </div>
+
+</div>
+
+
+<!-- My subscriptions -->
+<div class="panel" style="margin-bottom: 22px;">
+
+    <div class="panel-header">
+        <div>
+            <h3>My Active Subscriptions</h3>
+            <p class="stat-note">Your currently running plans</p>
+        </div>
+
+        <a href="#">View all →</a>
+    </div>
+
+
+    {% if active_subscriptions %}
+
+    <div class="table-wrapper">
+        <table class="dashboard-table">
+
+            <thead>
+                <tr>
+                    <th>SUBSCRIPTION</th>
+                    <th>PLAN</th>
+                    <th>START DATE</th>
+                    <th>NEXT BILLING</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for subscription in active_subscriptions %}
+
+                <tr>
+                    <td>
+                        <strong>{{ subscription.number }}</strong>
+                    </td>
+
+                    <td>{{ subscription.plan.name }}</td>
+
+                    <td>
+                        {{ subscription.start_date.strftime('%d %b %Y') if subscription.start_date else '—' }}
+                    </td>
+
+                    <td>
+                        {{ subscription.next_billing_date.strftime('%d %b %Y') if subscription.next_billing_date else 'Not scheduled' }}
+                    </td>
+
+                    <td>
+                        <span class="status {{ subscription.status }}">
+                            {{ subscription.status|title }}
+                        </span>
+                    </td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        <strong>No active subscriptions</strong>
+        You haven't subscribed to any plans yet.
+        <br><br>
+        <a href="#" class="btn btn-secondary">
+            Explore Available Plans
+        </a>
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- Invoices -->
+<div class="panel" style="margin-bottom: 22px;">
+
+    <div class="panel-header">
+        <div>
+            <h3>My Recent Invoices</h3>
+            <p class="stat-note">Your latest billing activity</p>
+        </div>
+
+        <a href="#">View all →</a>
+    </div>
+
+
+    {% if recent_invoices %}
+
+    <div class="table-wrapper">
+        <table class="dashboard-table">
+
+            <thead>
+                <tr>
+                    <th>INVOICE</th>
+                    <th>ISSUE DATE</th>
+                    <th>DUE DATE</th>
+                    <th>TOTAL</th>
+                    <th>OUTSTANDING</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for invoice in recent_invoices %}
+
+                <tr>
+                    <td>
+                        <strong>{{ invoice.number }}</strong>
+                    </td>
+
+                    <td>
+                        {{ invoice.issue_date.strftime('%d %b %Y') if invoice.issue_date else '—' }}
+                    </td>
+
+                    <td>
+                        {{ invoice.due_date.strftime('%d %b %Y') if invoice.due_date else '—' }}
+                    </td>
+
+                    <td>
+                        ₹{{ "%.2f"|format(invoice.total|float) }}
+                    </td>
+
+                    <td>
+                        ₹{{ "%.2f"|format(invoice.outstanding_amount|float) }}
+                    </td>
+
+                    <td>
+                        <span class="status {{ 'overdue' if invoice.is_overdue else invoice.status }}">
+                            {{ 'Overdue' if invoice.is_overdue else invoice.status|title }}
+                        </span>
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        <strong>No invoices yet</strong>
+        Your invoices will appear here when they are generated.
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- Pending payment reminder -->
+<div class="panel">
+
+    <div class="panel-header">
+        <h3>Payment Reminder</h3>
+    </div>
+
+    {% if pending_invoices %}
+
+        <p style="font-size: 13px; margin-bottom: 12px;">
+            You have <strong>{{ pending_invoices|length }}</strong>
+            invoice(s) with an outstanding balance.
+        </p>
+
+        {% for invoice in pending_invoices[:3] %}
+
+        <div class="stat-top">
+            <span class="stat-label">
+                {{ invoice.number }}
+            </span>
+
+            <strong style="color: var(--danger);">
+                ₹{{ "%.2f"|format(invoice.outstanding_amount|float) }}
+            </strong>
+        </div>
+
+        {% endfor %}
+
+        <a href="#" class="btn" style="margin-top: 10px;">
+            View Invoices →
+        </a>
+
+    {% else %}
+
+        <div class="empty-state">
+            <strong>You're all caught up!</strong>
+            There are no outstanding invoices requiring payment.
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

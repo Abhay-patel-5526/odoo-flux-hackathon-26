@@ -1,0 +1,109 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Billing History{% endblock %}
+{% block page_heading %}Billing History{% endblock %}
+{% block page_description %}Review previously generated subscription billing records.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/billing.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="billing-page">
+
+    <div class="billing-toolbar">
+        <div>
+            <h3>Billing records</h3>
+            <p>Track which subscription periods have already been billed.</p>
+        </div>
+
+        <a href="{{ url_for('billing.dashboard') }}" class="billing-btn billing-btn-secondary">
+            ← Billing dashboard
+        </a>
+    </div>
+
+    <section class="billing-panel">
+
+        <form method="GET" action="{{ url_for('billing.history') }}" class="billing-filter-form">
+            <input
+                type="search"
+                name="search"
+                value="{{ request.args.get('search', '') }}"
+                placeholder="Search subscription or invoice..."
+            >
+
+            <button type="submit" class="billing-btn billing-btn-secondary">Search</button>
+
+            <a href="{{ url_for('billing.history') }}" class="billing-btn billing-btn-light">
+                Clear
+            </a>
+        </form>
+
+        {% if records %}
+        <div class="billing-table-wrap">
+            <table class="billing-table">
+                <thead>
+                    <tr>
+                        <th>Subscription</th>
+                        <th>Customer</th>
+                        <th>Billing period</th>
+                        <th>Invoice</th>
+                        <th>Generated on</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>
+                            <strong>{{ record.subscription.number }}</strong>
+                        </td>
+
+                        <td>
+                            {{ record.subscription.customer.company_name or record.subscription.customer.user.name }}
+                        </td>
+
+                        <td>
+                            {{ record.period_start.strftime('%d %b %Y') }}
+                            –
+                            {{ record.period_end.strftime('%d %b %Y') }}
+                        </td>
+
+                        <td>
+                            {% if record.invoice %}
+                                <a href="{{ url_for('invoices.invoice_detail', invoice_id=record.invoice.id) }}"
+                                   class="billing-link">
+                                    {{ record.invoice.number }}
+                                </a>
+                            {% else %}
+                                <span class="billing-muted">Not linked</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ record.created_at.strftime('%d %b %Y, %I:%M %p') if record.created_at else '—' }}
+                        </td>
+
+                        <td>
+                            {% if record.invoice %}
+                            <a href="{{ url_for('invoices.invoice_detail', invoice_id=record.invoice.id) }}"
+                               class="billing-link">View invoice</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <div class="billing-empty">
+            <h3>No billing records found</h3>
+            <p>Billing records will appear here after recurring invoices are generated.</p>
+        </div>
+        {% endif %}
+
+    </section>
+</div>
+{% endblock %}

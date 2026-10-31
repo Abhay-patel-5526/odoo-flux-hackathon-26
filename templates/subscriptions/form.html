@@ -1,0 +1,182 @@
+{% extends "dashboard/_layout.html" %}
+
+{% set is_edit = subscription is not none %}
+
+{% block page_title %}{{ 'Edit Subscription' if is_edit else 'New Subscription' }}{% endblock %}
+{% block page_heading %}{{ 'Edit Subscription' if is_edit else 'Create Subscription' }}{% endblock %}
+{% block page_description %}
+    {{ 'Update subscription details.' if is_edit else 'Create a subscription for an existing customer and plan.' }}
+{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/subscriptions.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="product-page">
+
+    <form
+        method="POST"
+        action="{{ url_for('subscriptions.edit_subscription', subscription_id=subscription.id) if is_edit else url_for('subscriptions.create_subscription') }}"
+        class="product-form subscription-form"
+    >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <section class="form-section">
+            <h3>Subscription Details</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="customer_id">Customer *</label>
+                    <select id="customer_id" name="customer_id" required>
+                        <option value="">Select customer</option>
+
+                        {% for customer in customers %}
+                        <option
+                            value="{{ customer.id }}"
+                            {% if (subscription and subscription.customer_id == customer.id) or (not subscription and request.form.get('customer_id') == customer.id|string) %}
+                            selected
+                            {% endif %}
+                        >
+                            {{ customer.user.name }}
+                            {% if customer.company_name %} — {{ customer.company_name }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="plan_id">Plan *</label>
+                    <select id="plan_id" name="plan_id" required>
+                        <option value="">Select plan</option>
+
+                        {% for plan in plans %}
+                        <option
+                            value="{{ plan.id }}"
+                            {% if (subscription and subscription.plan_id == plan.id) or (not subscription and request.form.get('plan_id') == plan.id|string) %}
+                            selected
+                            {% endif %}
+                        >
+                            {{ plan.name }} — {{ plan.product.name }} ({{ plan.price }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_date">Start Date *</label>
+                    <input
+                        type="date"
+                        id="start_date"
+                        name="start_date"
+                        value="{{ subscription.start_date.strftime('%Y-%m-%d') if is_edit and subscription.start_date else request.form.get('start_date', '') }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="expiry_date">Expiry Date</label>
+                    <input
+                        type="date"
+                        id="expiry_date"
+                        name="expiry_date"
+                        value="{{ subscription.expiry_date.strftime('%Y-%m-%d') if is_edit and subscription.expiry_date else request.form.get('expiry_date', '') }}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="next_billing_date">Next Billing Date</label>
+                    <input
+                        type="date"
+                        id="next_billing_date"
+                        name="next_billing_date"
+                        value="{{ subscription.next_billing_date.strftime('%Y-%m-%d') if is_edit and subscription.next_billing_date else request.form.get('next_billing_date', '') }}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="payment_terms_days">Payment Terms (days)</label>
+                    <input
+                        type="number"
+                        id="payment_terms_days"
+                        name="payment_terms_days"
+                        min="0"
+                        value="{{ subscription.payment_terms_days if is_edit else request.form.get('payment_terms_days', '0') }}"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="currency">Currency</label>
+                    <select id="currency" name="currency">
+                        {% set selected_currency = subscription.currency if is_edit else request.form.get('currency', 'INR') %}
+                        <option value="INR" {% if selected_currency == 'INR' %}selected{% endif %}>INR — Indian Rupee</option>
+                        <option value="USD" {% if selected_currency == 'USD' %}selected{% endif %}>USD — US Dollar</option>
+                        <option value="EUR" {% if selected_currency == 'EUR' %}selected{% endif %}>EUR — Euro</option>
+                        <option value="GBP" {% if selected_currency == 'GBP' %}selected{% endif %}>GBP — Pound Sterling</option>
+                    </select>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="form-section">
+            <h3>Additional Information</h3>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea
+                    id="notes"
+                    name="notes"
+                    rows="4"
+                    placeholder="Add any notes about this subscription..."
+                >{{ subscription.notes if is_edit and subscription.notes else request.form.get('notes', '') }}</textarea>
+            </div>
+        </section>
+
+        {% if is_edit %}
+        <section class="form-section">
+            <h3>Subscription Status</h3>
+
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    {% for value, label in [
+                        ('draft', 'Draft'),
+                        ('quotation', 'Quotation'),
+                        ('confirmed', 'Confirmed'),
+                        ('active', 'Active'),
+                        ('paused', 'Paused'),
+                        ('closed', 'Closed'),
+                        ('cancelled', 'Cancelled')
+                    ] %}
+                    <option value="{{ value }}" {% if subscription.status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small>Some status changes may be restricted by subscription rules.</small>
+            </div>
+        </section>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="{{ url_for('subscriptions.list_subscriptions') }}" class="btn btn-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                {{ 'Save Changes' if is_edit else 'Create Subscription' }}
+            </button>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/subscriptions.js') }}"></script>
+{% endblock %}
+

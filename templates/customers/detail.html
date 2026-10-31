@@ -1,0 +1,218 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}{{ customer.user.name }} | Customer{% endblock %}
+{% block page_heading %}{{ customer.user.name }}{% endblock %}
+{% block page_description %}Customer profile and account information.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customers.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="product-page">
+
+    <!-- Header -->
+    <div class="product-toolbar">
+        <div>
+            <h1>{{ customer.user.name }}</h1>
+            <p>
+                Customer #{{ customer.id }}
+                · {{ customer.company_name or "Individual Customer" }}
+            </p>
+        </div>
+
+        {% if current_user.role == "admin" %}
+        <div class="product-detail-actions">
+
+            <a href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}"
+               class="btn btn-primary">
+                Edit Customer
+            </a>
+
+            {% if customer.user.is_active %}
+            <form method="POST"
+                  action="{{ url_for('customers.toggle_customer_status', customer_id=customer.id) }}"
+                  style="display:inline;"
+                  data-confirm="Are you sure you want to deactivate this customer?">
+
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <button type="submit" class="btn btn-danger">
+                    Deactivate
+                </button>
+            </form>
+            {% else %}
+            <form method="POST"
+                  action="{{ url_for('customers.toggle_customer_status', customer_id=customer.id) }}"
+                  style="display:inline;"
+                  data-confirm="Reactivate this customer account?">
+
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <button type="submit" class="btn btn-primary">
+                    Reactivate
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Account Status -->
+    <div class="form-section">
+        <h2>Account Status</h2>
+
+        {% if customer.user.is_active %}
+        <span class="status-badge active">Active</span>
+        {% else %}
+        <span class="status-badge archived">Inactive</span>
+        {% endif %}
+    </div>
+
+    <!-- Account Information -->
+    <div class="form-section">
+        <h2>Account Information</h2>
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <span>Customer Name</span>
+                <strong>{{ customer.user.name }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Email Address</span>
+                <strong>{{ customer.user.email }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Customer ID</span>
+                <strong>#{{ customer.id }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Account Role</span>
+                <strong>{{ customer.user.role|title }}</strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Company Information -->
+    <div class="form-section">
+        <h2>Company Information</h2>
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <span>Company Name</span>
+                <strong>{{ customer.company_name or "Not provided" }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Tax Identifier</span>
+                <strong>{{ customer.tax_identifier or "Not provided" }}</strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="form-section">
+        <h2>Contact Information</h2>
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <span>Phone Number</span>
+                <strong>{{ customer.phone or "Not provided" }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Billing Address</span>
+                <strong>{{ customer.billing_address or "Not provided" }}</strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Subscriptions -->
+    <div class="form-section">
+        <h2>Subscriptions</h2>
+
+        {% if customer.subscriptions %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subscription</th>
+                        <th>Plan</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for subscription in customer.subscriptions %}
+                    <tr>
+                        <td>{{ subscription.number }}</td>
+                        <td>{{ subscription.plan.name }}</td>
+                        <td>{{ subscription.status|title }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No subscriptions found for this customer.</p>
+        {% endif %}
+    </div>
+
+    <!-- Invoices -->
+    <div class="form-section">
+        <h2>Invoices</h2>
+
+        {% if customer.invoices %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Issue Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for invoice in customer.invoices %}
+                    <tr>
+                        <td>{{ invoice.number }}</td>
+                        <td>{{ invoice.issue_date }}</td>
+                        <td>₹{{ "%.2f"|format(invoice.total) }}</td>
+                        <td>{{ invoice.status|title }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No invoices found for this customer.</p>
+        {% endif %}
+    </div>
+
+    <!-- Back -->
+    <div class="form-actions">
+        <a href="{{ url_for('customers.list_customers') }}"
+           class="btn btn-secondary">
+            ← Back to Customers
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#f5f7ff">
+    <meta name="description" content="Brightloop Subscription Management">
+
+    <title>{% block page_title %}Authentication{% endblock %} | Brightloop</title>
+
+    <style>
+        /* =========================
+           GLOBAL VARIABLES
+        ========================== */
+
+        :root {
+            --primary: #6254e7;
+            --primary-dark: #5042d2;
+            --primary-light: #eeecff;
+
+            --background: #f5f7ff;
+            --surface: #ffffff;
+
+            --text: #20243a;
+            --muted: #777e93;
+            --border: #e5e8f1;
+
+            --success: #168653;
+            --danger: #d9364f;
+            --warning: #b7791f;
+            --info: #2875c7;
+
+            --radius: 14px;
+            --shadow: 0 12px 40px rgba(37, 43, 80, 0.08);
+        }
+
+        /* =========================
+           RESET
+        ========================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: var(--primary-dark);
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        /* =========================
+           PAGE LAYOUT
+        ========================== */
+
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 35px 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 460px;
+        }
+
+        /* =========================
+           BRAND
+        ========================== */
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            margin-bottom: 28px;
+        }
+
+        .brand-logo {
+            width: 43px;
+            height: 43px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        .brand-name {
+            font-size: 23px;
+            font-weight: 750;
+            letter-spacing: -0.8px;
+        }
+
+        .brand-name span {
+            color: var(--primary);
+        }
+
+        /* =========================
+           AUTH CARD
+        ========================== */
+
+        .auth-card {
+            background: var(--surface);
+            padding: 36px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .auth-header {
+            margin-bottom: 28px;
+        }
+
+        .auth-header h1 {
+            font-size: 27px;
+            font-weight: 750;
+            letter-spacing: -0.8px;
+            margin-bottom: 7px;
+        }
+
+        .auth-header p {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        /* =========================
+           FORMS
+        ========================== */
+
+        .form-group {
+            margin-bottom: 19px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 650;
+            margin-bottom: 7px;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 47px;
+            padding: 0 14px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: #fff;
+            color: var(--text);
+            outline: none;
+            transition: 0.2s ease;
+        }
+
+        .form-control::placeholder {
+            color: #a5aabd;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(98, 84, 231, 0.12);
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        /* =========================
+           BUTTONS
+        ========================== */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 47px;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 650;
+            transition: 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn:focus-visible,
+        a:focus-visible {
+            outline: 3px solid rgba(98, 84, 231, 0.35);
+            outline-offset: 3px;
+        }
+
+        /* =========================
+           FORM UTILITIES
+        ========================== */
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .checkbox-group input {
+            accent-color: var(--primary);
+        }
+
+        .text-small {
+            font-size: 13px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .auth-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 24px 0;
+        }
+
+        .auth-footer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 23px;
+        }
+
+        /* =========================
+           FLASH MESSAGES
+        ========================== */
+
+        .flash-container {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            border-radius: 9px;
+            font-size: 13px;
+            border: 1px solid transparent;
+        }
+
+        .flash-success {
+            color: var(--success);
+            background: #eaf8f0;
+            border-color: #c8ebd7;
+        }
+
+        .flash-danger {
+            color: var(--danger);
+            background: #fff0f1;
+            border-color: #ffd6da;
+        }
+
+        .flash-warning {
+            color: var(--warning);
+            background: #fff8e8;
+            border-color: #f4e2b5;
+        }
+
+        .flash-info {
+            color: var(--info);
+            background: #edf5ff;
+            border-color: #d2e5ff;
+        }
+
+        .flash-close {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            color: inherit;
+        }
+
+        /* =========================
+           PAGE FOOTER
+        ========================== */
+
+        .page-footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* =========================
+           RESPONSIVE DESIGN
+        ========================== */
+
+        @media (max-width: 500px) {
+            .auth-wrapper {
+                padding: 22px 15px;
+            }
+
+            .auth-card {
+                padding: 25px 20px;
+            }
+
+            .auth-header h1 {
+                font-size: 24px;
+            }
+
+            .brand {
+                margin-bottom: 22px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+    <main class="auth-wrapper">
+
+        <div class="auth-container">
+
+            <!-- BRAND -->
+            <div class="brand">
+                <div class="brand-logo">B</div>
+
+                <div class="brand-name">
+                    Bright<span>loop</span>
+                </div>
+            </div>
+
+            <!-- AUTHENTICATION CARD -->
+            <section class="auth-card">
+
+                <!-- FLASH NOTIFICATIONS -->
+                <div class="flash-container" aria-live="polite">
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% for category, message in messages %}
+
+                            <div class="flash-message flash-{{ category }}"
+                                 role="alert">
+
+                                <span>{{ message }}</span>
+
+                                <button type="button"
+                                        class="flash-close"
+                                        aria-label="Dismiss notification">
+                                    &times;
+                                </button>
+
+                            </div>
+
+                        {% endfor %}
+                    {% endwith %}
+
+                </div>
+
+                <!-- CHILD PAGE CONTENT -->
+                {% block auth_content %}{% endblock %}
+
+            </section>
+
+            <!-- FOOTER -->
+            <footer class="page-footer">
+                &copy; {{ now_year if now_year is defined else 2026 }}
+                Brightloop. All rights reserved.
+            </footer>
+
+        </div>
+
+    </main>
+
+    <!-- SHARED JAVASCRIPT -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Dismiss flash notifications
+            document.querySelectorAll(".flash-close").forEach(button => {
+
+                button.addEventListener("click", function () {
+                    const message = this.closest(".flash-message");
+
+                    if (message) {
+                        message.remove();
+                    }
+                });
+
+            });
+
+        });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

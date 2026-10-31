@@ -1,0 +1,83 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}My Subscriptions{% endblock %}
+{% block page_heading %}My Subscriptions{% endblock %}
+{% block page_description %}View your subscription plans and billing schedules.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/portal.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="portal-page">
+
+    <div class="portal-toolbar">
+        <div>
+            <h3>Subscription overview</h3>
+            <p>All your subscription agreements in one place.</p>
+        </div>
+
+        <a href="{{ url_for('portal.dashboard') }}" class="portal-btn portal-btn-light">
+            ← My account
+        </a>
+    </div>
+
+    <section class="portal-panel">
+
+        {% if subscriptions %}
+        <div class="portal-table-wrap">
+            <table class="portal-table">
+                <thead>
+                    <tr>
+                        <th>Subscription number</th>
+                        <th>Plan</th>
+                        <th>Start date</th>
+                        <th>Expiry date</th>
+                        <th>Next billing</th>
+                        <th>Payment terms</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for subscription in subscriptions %}
+                    <tr>
+                        <td><strong>{{ subscription.number }}</strong></td>
+
+                        <td>{{ subscription.plan.name if subscription.plan else '—' }}</td>
+
+                        <td>
+                            {{ subscription.start_date.strftime('%d %b %Y') if subscription.start_date else '—' }}
+                        </td>
+
+                        <td>
+                            {{ subscription.expiry_date.strftime('%d %b %Y') if subscription.expiry_date else '—' }}
+                        </td>
+
+                        <td>
+                            {{ subscription.next_billing_date.strftime('%d %b %Y') if subscription.next_billing_date else '—' }}
+                        </td>
+
+                        <td>{{ subscription.payment_terms_days }} days</td>
+
+                        <td>
+                            <span class="portal-status portal-status-{{ subscription.status }}">
+                                {{ subscription.status.replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <div class="portal-empty">
+            <h3>No subscriptions yet</h3>
+            <p>Your subscriptions will appear here once they are created and confirmed.</p>
+        </div>
+        {% endif %}
+
+    </section>
+</div>
+{% endblock %}

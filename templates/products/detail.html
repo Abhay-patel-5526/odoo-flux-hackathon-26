@@ -1,0 +1,350 @@
+
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}{{ product.name }}{% endblock %}
+
+{% block page_heading %}Product Details{% endblock %}
+
+{% block page_description %}
+View product information, pricing and variants.
+{% endblock %}
+
+
+{% block product_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/products.css') }}">
+{% endblock %}
+
+
+{% block dashboard_content %}
+
+<div class="product-page">
+
+    <!-- Header -->
+    <div class="product-detail-header">
+
+        <div class="product-detail-title">
+
+            <div class="product-icon">
+                ◈
+            </div>
+
+            <div>
+                <h3>{{ product.name }}</h3>
+
+                <p>
+                    Product #{{ product.id }}
+                    · {{ product.product_type|title }}
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="product-detail-actions">
+
+            <a href="{{ url_for('products.list_products') }}"
+               class="btn btn-secondary">
+                ← Back
+            </a>
+
+            {% if current_user.role == "admin" %}
+
+            <a href="{{ url_for(
+                'products.edit_product',
+                product_id=product.id
+            ) }}" class="btn">
+                Edit Product
+            </a>
+
+            {% if product.is_active %}
+
+            <form method="POST"
+                  action="{{ url_for(
+                    'products.archive_product',
+                    product_id=product.id
+                  ) }}"
+                  data-confirm="Are you sure you want to archive this product?">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <button type="submit" class="btn btn-danger">
+                    Archive
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <form method="POST"
+                  action="{{ url_for(
+                    'products.restore_product',
+                    product_id=product.id
+                  ) }}"
+                  data-confirm="Are you sure you want to restore this product?">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <button type="submit" class="btn">
+                    Restore Product
+                </button>
+
+            </form>
+
+            {% endif %}
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Product information -->
+    <div class="panel" style="margin-bottom: 22px;">
+
+        <div class="panel-header">
+            <h3>Product Information</h3>
+
+            {% if product.is_active %}
+                <span class="status active">Active</span>
+            {% else %}
+                <span class="status cancelled">Archived</span>
+            {% endif %}
+        </div>
+
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <small>Product Name</small>
+                <strong>{{ product.name }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Product Type</small>
+                <strong>{{ product.product_type|title }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Sales Price</small>
+                <strong>
+                    ₹{{ "%.2f"|format(product.sales_price|float) }}
+                </strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Cost Price</small>
+                <strong>
+                    ₹{{ "%.2f"|format(product.cost_price|float) }}
+                </strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Created On</small>
+                <strong>
+                    {{ product.created_at.strftime('%d %b %Y') }}
+                </strong>
+            </div>
+
+            <div class="detail-item">
+                <small>Last Updated</small>
+                <strong>
+                    {{ product.updated_at.strftime('%d %b %Y') }}
+                </strong>
+            </div>
+
+        </div>
+
+        {% if product.notes %}
+
+        <div style="margin-top: 22px;">
+
+            <h4 style="font-size: 13px; margin-bottom: 10px;">
+                Product Notes
+            </h4>
+
+            <p class="product-notes">
+                {{ product.notes }}
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- Product variants -->
+    <div class="panel" style="margin-bottom: 22px;">
+
+        <div class="panel-header">
+
+            <div>
+                <h3>Product Variants</h3>
+
+                <p class="stat-note">
+                    {{ product.variants|length }} variant(s) configured
+                </p>
+            </div>
+
+            {% if current_user.role == "admin" %}
+            <a href="{{ url_for(
+                'products.edit_product',
+                product_id=product.id
+            ) }}">
+                Manage variants →
+            </a>
+            {% endif %}
+
+        </div>
+
+
+        {% if product.variants %}
+
+        <div class="table-wrapper">
+
+            <table class="dashboard-table">
+
+                <thead>
+                    <tr>
+                        <th>VARIANT NAME</th>
+                        <th>ADDITIONAL PRICE</th>
+                        <th>COMBINED PRICE</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for variant in product.variants %}
+
+                    <tr>
+
+                        <td>
+                            <strong>{{ variant.name }}</strong>
+                        </td>
+
+                        <td>
+                            ₹{{ "%.2f"|format(variant.additional_price|float) }}
+                        </td>
+
+                        <td>
+                            <strong>
+                                ₹{{ "%.2f"|format(
+                                    (product.sales_price + variant.additional_price)|float
+                                ) }}
+                            </strong>
+                        </td>
+
+                        <td>
+
+                            {% if variant.is_active %}
+                                <span class="status active">Active</span>
+                            {% else %}
+                                <span class="status cancelled">Inactive</span>
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            <strong>No variants configured</strong>
+            This product currently has no additional variants.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- Related plans -->
+    <div class="panel">
+
+        <div class="panel-header">
+            <h3>Associated Plans</h3>
+        </div>
+
+        {% if product.plans %}
+
+        <div class="table-wrapper">
+
+            <table class="dashboard-table">
+
+                <thead>
+                    <tr>
+                        <th>PLAN NAME</th>
+                        <th>PRICE</th>
+                        <th>BILLING INTERVAL</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for plan in product.plans %}
+
+                    <tr>
+                        <td>
+                            <strong>{{ plan.name }}</strong>
+                        </td>
+
+                        <td>
+                            ₹{{ "%.2f"|format(plan.price|float) }}
+                        </td>
+
+                        <td>
+                            {{ plan.billing_interval|title }}
+                        </td>
+
+                        <td>
+                            {% if plan.is_active %}
+                                <span class="status active">Active</span>
+                            {% else %}
+                                <span class="status cancelled">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            <strong>No plans associated</strong>
+            Plans created for this product will appear here.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/products.js') }}"></script>
+{% endblock %}

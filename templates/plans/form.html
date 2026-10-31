@@ -1,0 +1,217 @@
+{% extends "dashboard/_layout.html" %}
+
+{% set is_edit = plan is not none %}
+
+{% block page_title %}
+    {{ "Edit Plan" if is_edit else "Create Plan" }}
+{% endblock %}
+
+{% block page_heading %}
+    {{ "Edit Plan" if is_edit else "Create Plan" }}
+{% endblock %}
+
+{% block page_description %}
+    Configure subscription pricing and terms.
+{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/plans.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="product-page">
+
+    <div class="section-heading">
+        <div>
+            <h3>{{ "Plan Information" if is_edit else "New Plan" }}</h3>
+            <p>
+                {% if is_edit %}
+                    Update {{ plan.name }} and its subscription settings.
+                {% else %}
+                    Configure a new subscription plan.
+                {% endif %}
+            </p>
+        </div>
+
+        <a href="{{ url_for('plans.list_plans') }}"
+           class="btn btn-secondary">
+            ← Back to Plans
+        </a>
+    </div>
+
+    <form method="POST"
+          action="{{ url_for('plans.edit_plan', plan_id=plan.id) if is_edit else url_for('plans.create_plan') }}"
+          class="product-form">
+
+        <input type="hidden" name="csrf_token"
+               value="{{ csrf_token() }}">
+
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h3 class="form-section-title">Basic Information</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="name">Plan Name <span>*</span></label>
+                    <input type="text" id="name" name="name"
+                           class="product-input"
+                           placeholder="e.g. Premium Monthly"
+                           value="{{ plan.name if is_edit else request.form.get('name', '') }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="product_id">Linked Product <span>*</span></label>
+                    <select id="product_id" name="product_id"
+                            class="product-select" required>
+                        <option value="">Select Product</option>
+
+                        {% for product in products %}
+                        <option value="{{ product.id }}"
+                            {% if (is_edit and plan.product_id == product.id) or (not is_edit and request.form.get('product_id') == product.id|string) %}selected{% endif %}>
+                            {{ product.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Price (₹) <span>*</span></label>
+                    <input type="number" id="price" name="price"
+                           class="product-input"
+                           min="0" step="0.01"
+                           value="{{ plan.price if is_edit else request.form.get('price', '') }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="billing_interval">Billing Interval <span>*</span></label>
+                    <select id="billing_interval" name="billing_interval"
+                            class="product-select" required>
+                        {% for interval in ["daily", "weekly", "monthly", "yearly"] %}
+                        <option value="{{ interval }}"
+                            {% if (is_edit and plan.billing_interval == interval) or (not is_edit and request.form.get('billing_interval', 'monthly') == interval) %}selected{% endif %}>
+                            {{ interval|capitalize }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="minimum_quantity">Minimum Quantity <span>*</span></label>
+                    <input type="number" id="minimum_quantity"
+                           name="minimum_quantity"
+                           class="product-input"
+                           min="1"
+                           value="{{ plan.minimum_quantity if is_edit else request.form.get('minimum_quantity', 1) }}"
+                           required>
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description"
+                          class="product-textarea"
+                          placeholder="Describe this subscription plan...">{{ plan.description if is_edit else request.form.get('description', '') }}</textarea>
+            </div>
+        </div>
+
+        <!-- Availability -->
+        <div class="form-section">
+            <h3 class="form-section-title">Availability</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="available_from">Available From</label>
+                    <input type="date" id="available_from"
+                           name="available_from"
+                           class="product-input"
+                           value="{{ plan.available_from.isoformat() if is_edit and plan.available_from else request.form.get('available_from', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="available_until">Available Until</label>
+                    <input type="date" id="available_until"
+                           name="available_until"
+                           class="product-input"
+                           value="{{ plan.available_until.isoformat() if is_edit and plan.available_until else request.form.get('available_until', '') }}">
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Subscription Settings -->
+        <div class="form-section">
+            <h3 class="form-section-title">Subscription Settings</h3>
+
+            <div class="form-grid">
+
+                <label>
+                    <input type="checkbox" name="auto_close"
+                        {% if (is_edit and plan.auto_close) or (not is_edit and request.form.get('auto_close')) %}checked{% endif %}>
+                    Automatically close
+                </label>
+
+                <label>
+                    <input type="checkbox" name="allow_early_close"
+                        {% if (is_edit and plan.allow_early_close) or (not is_edit and (request.method != 'POST' or request.form.get('allow_early_close'))) %}checked{% endif %}>
+                    Allow early closure
+                </label>
+
+                <label>
+                    <input type="checkbox" name="allow_pause"
+                        {% if (is_edit and plan.allow_pause) or (not is_edit and (request.method != 'POST' or request.form.get('allow_pause'))) %}checked{% endif %}>
+                    Allow pause
+                </label>
+
+                <label>
+                    <input type="checkbox" name="allow_renewal"
+                        {% if (is_edit and plan.allow_renewal) or (not is_edit and (request.method != 'POST' or request.form.get('allow_renewal'))) %}checked{% endif %}>
+                    Allow renewal
+                </label>
+
+            </div>
+        </div>
+
+        {% if is_edit %}
+        <div class="form-section">
+            <h3 class="form-section-title">Status</h3>
+
+            <label>
+                <input type="checkbox" name="is_active"
+                       {% if plan.is_active %}checked{% endif %}>
+                Plan is active
+            </label>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="form-actions">
+
+            <a href="{{ url_for('plans.list_plans') }}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn">
+                {{ "Save Changes" if is_edit else "Create Plan" }}
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/plans.js') }}"></script>
+{% endblock %}

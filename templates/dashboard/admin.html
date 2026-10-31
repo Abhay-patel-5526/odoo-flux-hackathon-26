@@ -1,0 +1,231 @@
+
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block page_heading %}
+Business Overview
+{% endblock %}
+
+{% block page_description %}
+Welcome back, {{ current_user.name }}! Here's what's happening with your business.
+{% endblock %}
+
+
+{% block dashboard_content %}
+
+<!-- Welcome section -->
+<div class="section-heading">
+    <div>
+        <h3>Overview</h3>
+        <p>Here's a snapshot of your subscription business.</p>
+    </div>
+
+    <a href="#" class="btn">
+        + New Subscription
+    </a>
+</div>
+
+
+<!-- Statistics cards -->
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Total Customers</span>
+            <span class="stat-icon">♙</span>
+        </div>
+
+        <h3>{{ stats.total_customers }}</h3>
+        <p class="stat-note">Registered customers</p>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Active Subscriptions</span>
+            <span class="stat-icon">◇</span>
+        </div>
+
+        <h3>{{ stats.active_subscriptions }}</h3>
+        <p class="stat-note">Currently active subscriptions</p>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Monthly Revenue</span>
+            <span class="stat-icon">₹</span>
+        </div>
+
+        <h3>₹{{ "%.2f"|format(stats.monthly_revenue|float) }}</h3>
+        <p class="stat-note">Payments received this month</p>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Pending Invoices</span>
+            <span class="stat-icon">▤</span>
+        </div>
+
+        <h3>{{ stats.pending_invoices }}</h3>
+        <p class="stat-note">
+            {{ stats.overdue_invoices }} overdue invoices
+        </p>
+    </div>
+
+</div>
+
+
+<!-- Secondary metrics -->
+<div class="section-heading">
+    <div>
+        <h3>Business Resources</h3>
+        <p>Your currently available catalogue.</p>
+    </div>
+</div>
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Active Products</span>
+            <span class="stat-icon">▣</span>
+        </div>
+
+        <h3>{{ stats.total_products }}</h3>
+        <p class="stat-note">Available products</p>
+    </div>
+
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-label">Active Plans</span>
+            <span class="stat-icon">◈</span>
+        </div>
+
+        <h3>{{ stats.total_plans }}</h3>
+        <p class="stat-note">Available subscription plans</p>
+    </div>
+
+</div>
+
+
+<!-- Recent subscriptions -->
+<div class="panel">
+
+    <div class="panel-header">
+        <div>
+            <h3>Recent Subscriptions</h3>
+            <p class="stat-note">Latest subscription activity</p>
+        </div>
+
+        <a href="#">View all →</a>
+    </div>
+
+
+    {% if stats.recent_subscriptions %}
+
+    <div class="table-wrapper">
+        <table class="dashboard-table">
+
+            <thead>
+                <tr>
+                    <th>SUBSCRIPTION</th>
+                    <th>CUSTOMER</th>
+                    <th>PLAN</th>
+                    <th>START DATE</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for subscription in stats.recent_subscriptions %}
+
+                <tr>
+                    <td>
+                        <strong>{{ subscription.number }}</strong>
+                    </td>
+
+                    <td>
+                        {{ subscription.customer.company_name or subscription.customer.user.name if subscription.customer.user else 'Customer' }}
+                    </td>
+
+                    <td>
+                        {{ subscription.plan.name }}
+                    </td>
+
+                    <td>
+                        {{ subscription.start_date.strftime('%d %b %Y') if subscription.start_date else 'Not started' }}
+                    </td>
+
+                    <td>
+                        <span class="status {{ subscription.status }}">
+                            {{ subscription.status|title }}
+                        </span>
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        <strong>No subscriptions yet</strong>
+        Your recent subscriptions will appear here.
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- Invoice overview -->
+<div class="content-grid">
+
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Invoice Overview</h3>
+        </div>
+
+        <div class="stat-top">
+            <span class="stat-label">Pending invoices</span>
+            <strong>{{ stats.pending_invoices }}</strong>
+        </div>
+
+        <div class="stat-top">
+            <span class="stat-label">Overdue invoices</span>
+            <strong style="color: var(--danger);">
+                {{ stats.overdue_invoices }}
+            </strong>
+        </div>
+    </div>
+
+
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Quick Summary</h3>
+        </div>
+
+        <p class="stat-note">
+            Keep track of your products, plans, customers and subscriptions
+            from this dashboard.
+        </p>
+
+        <br>
+
+        <a href="#" class="btn btn-secondary">
+            Manage Business →
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

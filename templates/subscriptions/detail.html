@@ -1,0 +1,250 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Subscription {{ subscription.number }}{% endblock %}
+{% block page_heading %}Subscription Details{% endblock %}
+{% block page_description %}View and manage this customer subscription.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/subscriptions.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="product-page">
+
+    <div class="detail-header">
+        <div>
+            <span class="product-type">{{ subscription.number }}</span>
+            <h2>{{ subscription.plan.name }}</h2>
+            <p class="product-description">
+                {{ subscription.plan.product.name }}
+            </p>
+        </div>
+
+        <span class="status-badge status-{{ subscription.status }}">
+            {{ subscription.status|title }}
+        </span>
+    </div>
+
+    <div class="detail-actions">
+        <a href="{{ url_for('subscriptions.list_subscriptions') }}" class="btn btn-secondary">
+            ← Back to Subscriptions
+        </a>
+
+        {% if current_user.role == 'admin' %}
+        <a
+            href="{{ url_for('subscriptions.edit_subscription', subscription_id=subscription.id) }}"
+            class="btn btn-primary"
+        >
+            Edit Subscription
+        </a>
+        {% endif %}
+    </div>
+
+    <section class="form-section">
+        <h3>Customer Information</h3>
+
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span>Customer Name</span>
+                <strong>{{ subscription.customer.user.name }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Email</span>
+                <strong>{{ subscription.customer.user.email }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Company</span>
+                <strong>{{ subscription.customer.company_name or '—' }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Phone</span>
+                <strong>{{ subscription.customer.phone or '—' }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <h3>Plan Information</h3>
+
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span>Product</span>
+                <strong>{{ subscription.plan.product.name }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Plan</span>
+                <strong>{{ subscription.plan.name }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Plan Price</span>
+                <strong>
+                    {{ subscription.currency }}
+                    {{ "%.2f"|format(subscription.plan.price) }}
+                </strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Billing Interval</span>
+                <strong>{{ subscription.plan.billing_interval|title }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Minimum Quantity</span>
+                <strong>{{ subscription.plan.minimum_quantity }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <h3>Subscription Timeline</h3>
+
+        <div class="detail-grid">
+            <div class="detail-item">
+                <span>Start Date</span>
+                <strong>
+                    {{ subscription.start_date.strftime('%d %b %Y') if subscription.start_date else '—' }}
+                </strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Expiry Date</span>
+                <strong>
+                    {{ subscription.expiry_date.strftime('%d %b %Y') if subscription.expiry_date else 'No expiry' }}
+                </strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Next Billing Date</span>
+                <strong>
+                    {{ subscription.next_billing_date.strftime('%d %b %Y') if subscription.next_billing_date else '—' }}
+                </strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Payment Terms</span>
+                <strong>{{ subscription.payment_terms_days }} days</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Created</span>
+                <strong>
+                    {{ subscription.created_at.strftime('%d %b %Y') if subscription.created_at else '—' }}
+                </strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Closed At</span>
+                <strong>
+                    {{ subscription.closed_at.strftime('%d %b %Y') if subscription.closed_at else '—' }}
+                </strong>
+            </div>
+        </div>
+    </section>
+
+    {% if subscription.notes %}
+    <section class="form-section">
+        <h3>Notes</h3>
+        <div class="product-notes">
+            {{ subscription.notes }}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="form-section">
+        <h3>Linked Invoices</h3>
+
+        {% if subscription.invoices %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for invoice in subscription.invoices %}
+                    <tr>
+                        <td>{{ invoice.number }}</td>
+                        <td>
+                            {{ invoice.issue_date.strftime('%d %b %Y') if invoice.issue_date else '—' }}
+                        </td>
+                        <td>
+                            {{ invoice.due_date.strftime('%d %b %Y') if invoice.due_date else '—' }}
+                        </td>
+                        <td>
+                            {{ subscription.currency }}
+                            {{ "%.2f"|format(invoice.total) }}
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ invoice.status }}">
+                                {{ invoice.status|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No invoices have been generated for this subscription yet.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    {% if current_user.role == 'admin' %}
+    <section class="form-section">
+        <h3>Manage Subscription Status</h3>
+
+        <form
+            method="POST"
+            action="{{ url_for('subscriptions.update_subscription_status', subscription_id=subscription.id) }}"
+            data-confirm="Are you sure you want to update this subscription status?"
+        >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="new_status">New Status</label>
+                    <select id="new_status" name="status" required>
+                        {% for value, label in [
+                            ('draft', 'Draft'),
+                            ('quotation', 'Quotation'),
+                            ('confirmed', 'Confirmed'),
+                            ('active', 'Active'),
+                            ('paused', 'Paused'),
+                            ('closed', 'Closed'),
+                            ('cancelled', 'Cancelled')
+                        ] %}
+                        <option value="{{ value }}" {% if subscription.status == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-secondary">
+                Update Status
+            </button>
+        </form>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/subscriptions.js') }}"></script>
+{% endblock %}

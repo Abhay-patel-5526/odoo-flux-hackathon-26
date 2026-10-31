@@ -1,0 +1,118 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Subscriptions{% endblock %}
+{% block page_heading %}Subscriptions{% endblock %}
+{% block page_description %}Manage customer subscriptions and track their billing lifecycle.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/subscriptions.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="product-page">
+
+    <div class="page-actions">
+        <form method="GET" action="{{ url_for('subscriptions.list_subscriptions') }}" class="search-form">
+            <input
+                type="search"
+                name="q"
+                value="{{ search }}"
+                placeholder="Search subscription, customer or plan..."
+                aria-label="Search subscriptions"
+            >
+
+            <select name="status" aria-label="Filter by status">
+                <option value="all" {% if status == 'all' %}selected{% endif %}>All statuses</option>
+                <option value="draft" {% if status == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="quotation" {% if status == 'quotation' %}selected{% endif %}>Quotation</option>
+                <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                <option value="paused" {% if status == 'paused' %}selected{% endif %}>Paused</option>
+                <option value="closed" {% if status == 'closed' %}selected{% endif %}>Closed</option>
+                <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+
+            <button type="submit" class="btn btn-secondary">Filter</button>
+        </form>
+
+        {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('subscriptions.create_subscription') }}" class="btn btn-primary">
+            + New Subscription
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="product-grid">
+        {% for subscription in subscriptions %}
+        <article class="product-card customer-card">
+
+            <div class="product-card-header">
+                <span class="product-type">
+                    {{ subscription.number }}
+                </span>
+
+                <span class="status-badge status-{{ subscription.status }}">
+                    {{ subscription.status|title }}
+                </span>
+            </div>
+
+            <h3>
+                <a href="{{ url_for('subscriptions.subscription_detail', subscription_id=subscription.id) }}">
+                    {{ subscription.plan.name }}
+                </a>
+            </h3>
+
+            <p class="product-description">
+                Customer:
+                <strong>{{ subscription.customer.user.name }}</strong>
+            </p>
+
+            <div class="customer-info">
+                <span>
+                    <strong>Plan price:</strong>
+                    {{ subscription.currency }} {{ "%.2f"|format(subscription.plan.price) }}
+                </span>
+
+                <span>
+                    <strong>Billing:</strong>
+                    {{ subscription.plan.billing_interval|title }}
+                </span>
+
+                <span>
+                    <strong>Start date:</strong>
+                    {{ subscription.start_date.strftime('%d %b %Y') if subscription.start_date else '—' }}
+                </span>
+
+                <span>
+                    <strong>Next billing:</strong>
+                    {{ subscription.next_billing_date.strftime('%d %b %Y') if subscription.next_billing_date else '—' }}
+                </span>
+            </div>
+
+            <div class="product-card-actions">
+                <a
+                    href="{{ url_for('subscriptions.subscription_detail', subscription_id=subscription.id) }}"
+                    class="btn btn-secondary"
+                >
+                    View Details
+                </a>
+            </div>
+
+        </article>
+        {% else %}
+        <div class="empty-state">
+            <h3>No subscriptions found</h3>
+            <p>Try changing your search or status filter.</p>
+
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('subscriptions.create_subscription') }}" class="btn btn-primary">
+                Create Subscription
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

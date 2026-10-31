@@ -1,0 +1,145 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Plans{% endblock %}
+{% block page_heading %}Plans{% endblock %}
+{% block page_description %}Manage subscription plans and pricing.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/plans.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="product-page">
+
+    <!-- Page Header -->
+    <div class="product-toolbar">
+        <div>
+            <h1>Plans</h1>
+            <p>Manage subscription plans and pricing.</p>
+        </div>
+
+        {% if current_user.role == "admin" %}
+        <a href="{{ url_for('plans.create_plan') }}" class="btn btn-primary">
+            + Create Plan
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="product-filters">
+
+        <form method="GET" class="product-search">
+            <input
+                type="text"
+                name="q"
+                class="product-input"
+                placeholder="Search plans or products..."
+                value="{{ search or '' }}"
+            >
+
+            <input type="hidden" name="status" value="{{ status or 'active' }}">
+
+            <button type="submit" class="btn btn-secondary">
+                Search
+            </button>
+        </form>
+
+        <form method="GET" id="plan-filter-form">
+            <input type="hidden" name="q" value="{{ search or '' }}">
+
+            <select
+                name="status"
+                class="product-select"
+                onchange="this.form.submit()"
+            >
+                <option value="active" {% if status == "active" %}selected{% endif %}>
+                    Active Plans
+                </option>
+
+                <option value="archived" {% if status == "archived" %}selected{% endif %}>
+                    Archived Plans
+                </option>
+
+                <option value="all" {% if status == "all" %}selected{% endif %}>
+                    All Plans
+                </option>
+            </select>
+        </form>
+
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="product-grid">
+
+        {% for plan in plans %}
+
+        <div class="product-card">
+
+            <div class="product-detail-header">
+                <div>
+                    <h3>{{ plan.name }}</h3>
+                    <p>{{ plan.product.name }}</p>
+                </div>
+
+                {% if plan.is_active %}
+                <span class="status-badge active">Active</span>
+                {% else %}
+                <span class="status-badge archived">Archived</span>
+                {% endif %}
+            </div>
+
+            <div class="product-price">
+                <strong>₹{{ "%.2f"|format(plan.price) }}</strong>
+                <span>/ {{ plan.billing_interval|capitalize }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span>Minimum Quantity</span>
+                <strong>{{ plan.minimum_quantity }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Available From</span>
+                <strong>{{ plan.available_from or "Anytime" }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Available Until</span>
+                <strong>{{ plan.available_until or "Unlimited" }}</strong>
+            </div>
+
+            <div class="product-detail-actions">
+                <a
+                    href="{{ url_for('plans.plan_detail', plan_id=plan.id) }}"
+                    class="btn btn-secondary"
+                >
+                    View Details →
+                </a>
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            <h3>No plans found</h3>
+            <p>
+                {% if search %}
+                    No plans match your search. Try another name.
+                {% elif status == "archived" %}
+                    You don't have any archived plans.
+                {% else %}
+                    Create your first subscription plan to get started.
+                {% endif %}
+            </p>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,108 @@
+/* =========================================
+   CUSTOMERS MODULE
+========================================= */
+
+/* Customer cards */
+
+.customer-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.customer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.customer-info .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.customer-info .detail-item strong {
+    overflow-wrap: anywhere;
+}
+
+.customer-card .product-detail-actions {
+    margin-top: auto;
+}
+
+/* Customer detail sections */
+
+.product-page .form-section {
+    margin-bottom: 20px;
+}
+
+.product-page .form-section h2 {
+    margin-bottom: 20px;
+}
+
+.product-page .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.product-page .detail-item {
+    min-width: 0;
+}
+
+.product-page .detail-item strong {
+    overflow-wrap: anywhere;
+}
+
+.product-notes {
+    margin-top: 24px;
+}
+
+/* Related subscriptions and invoices */
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-responsive table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 550px;
+}
+
+.table-responsive th,
+.table-responsive td {
+    padding: 13px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.table-responsive th {
+    font-weight: 600;
+    color: #64748b;
+    background: #f8fafc;
+}
+
+.table-responsive td {
+    color: #334155;
+}
+
+/* Responsive layout */
+
+@media (max-width: 768px) {
+    .product-page .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .customer-card {
+        width: 100%;
+    }
+
+    .table-responsive table {
+        min-width: 500px;
+    }
+}

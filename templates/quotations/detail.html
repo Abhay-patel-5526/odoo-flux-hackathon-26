@@ -1,0 +1,199 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}{{ quotation.number }}{% endblock %}
+{% block page_heading %}Quotation {{ quotation.number }}{% endblock %}
+{% block page_description %}Review quotation details, pricing and status.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quotations.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="page-toolbar">
+    <a href="{{ url_for('quotations.list_quotations') }}" class="btn btn-secondary">
+        &larr; Back to Quotations
+    </a>
+
+    <div class="toolbar-actions">
+
+        {% if quotation.status == 'draft' %}
+        <a href="{{ url_for('quotations.edit_quotation', quotation_id=quotation.id) }}"
+           class="btn btn-secondary">
+            Edit
+        </a>
+
+        <form method="POST"
+              action="{{ url_for('quotations.send_quotation', quotation_id=quotation.id) }}"
+              data-confirm="Send this quotation to the customer?">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary">Mark as Sent</button>
+        </form>
+        {% endif %}
+
+        {% if quotation.status == 'sent' %}
+        <form method="POST"
+              action="{{ url_for('quotations.update_quotation_status', quotation_id=quotation.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="accepted">
+            <button type="submit" class="btn btn-primary"
+                    data-confirm="Mark this quotation as accepted?">
+                Accept
+            </button>
+        </form>
+
+        <form method="POST"
+              action="{{ url_for('quotations.update_quotation_status', quotation_id=quotation.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="rejected">
+            <button type="submit" class="btn btn-danger"
+                    data-confirm="Reject this quotation?">
+                Reject
+            </button>
+        </form>
+        {% endif %}
+
+        {% if quotation.status in ['draft', 'sent'] and current_user.role == 'admin' %}
+        <form method="POST"
+              action="{{ url_for('quotations.update_quotation_status', quotation_id=quotation.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="cancelled">
+            <button type="submit" class="btn btn-danger"
+                    data-confirm="Cancel this quotation?">
+                Cancel
+            </button>
+        </form>
+        {% endif %}
+
+    </div>
+</div>
+
+<div class="quotation-detail-grid">
+
+    <div class="content-card quotation-main-card">
+
+        <div class="quotation-detail-header">
+            <div>
+                <span class="detail-label">Quotation Number</span>
+                <h2>{{ quotation.number }}</h2>
+            </div>
+
+            <span class="status-badge status-{{ quotation.status }}">
+                {{ quotation.status|title }}
+            </span>
+        </div>
+
+        <div class="quotation-info-grid">
+            <div>
+                <span class="detail-label">Customer</span>
+                <strong>{{ quotation.customer.user.name }}</strong>
+
+                {% if quotation.customer.company_name %}
+                <span>{{ quotation.customer.company_name }}</span>
+                {% endif %}
+
+                <span>{{ quotation.customer.user.email }}</span>
+
+                {% if quotation.customer.phone %}
+                <span>{{ quotation.customer.phone }}</span>
+                {% endif %}
+            </div>
+
+            <div>
+                <span class="detail-label">Quotation Dates</span>
+
+                <span>
+                    <strong>Issued:</strong>
+                    {{ quotation.issue_date.strftime('%d %b %Y') }}
+                </span>
+
+                <span>
+                    <strong>Valid Until:</strong>
+                    {{ quotation.valid_until.strftime('%d %b %Y') }}
+                </span>
+
+                {% if quotation.template %}
+                <span>
+                    <strong>Template:</strong>
+                    {{ quotation.template.name }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Tax</th>
+                        <th>Subtotal</th>
+                        <th>Tax Amount</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for line in quotation.lines %}
+                    <tr>
+                        <td>{{ line.description }}</td>
+                        <td>{{ line.quantity }}</td>
+                        <td>{{ quotation.currency }} {{ "%.2f"|format(line.unit_price) }}</td>
+                        <td>{{ line.tax_percentage }}%</td>
+                        <td>{{ quotation.currency }} {{ "%.2f"|format(line.line_subtotal) }}</td>
+                        <td>{{ quotation.currency }} {{ "%.2f"|format(line.line_tax) }}</td>
+                        <td>
+                            {{ quotation.currency }}
+                            {{ "%.2f"|format(line.line_subtotal + line.line_tax) }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="empty-state">No quotation lines.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="quotation-detail-total">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <strong>{{ quotation.currency }} {{ "%.2f"|format(quotation.subtotal) }}</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Discount</span>
+                <strong>{{ quotation.currency }} {{ "%.2f"|format(quotation.discount_amount) }}</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Tax</span>
+                <strong>{{ quotation.currency }} {{ "%.2f"|format(quotation.tax_amount) }}</strong>
+            </div>
+
+            <div class="summary-row summary-total">
+                <span>Grand Total</span>
+                <strong>{{ quotation.currency }} {{ "%.2f"|format(quotation.total) }}</strong>
+            </div>
+        </div>
+
+        {% if quotation.notes %}
+        <div class="quotation-notes">
+            <h3>Notes / Terms and Conditions</h3>
+            <p>{{ quotation.notes }}</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/quotations.js') }}" defer></script>
+{% endblock %}

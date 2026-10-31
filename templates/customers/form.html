@@ -1,0 +1,211 @@
+{% extends "dashboard/_layout.html" %}
+
+{% set is_edit = customer is not none %}
+
+{% block page_title %}
+    {{ "Edit Customer" if is_edit else "Create Customer" }}
+{% endblock %}
+
+{% block page_heading %}
+    {{ "Edit Customer" if is_edit else "Create Customer" }}
+{% endblock %}
+
+{% block page_description %}
+    Manage customer account and contact information.
+{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customers.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="product-page">
+
+    <div class="section-heading">
+        <div>
+            <h3>{{ "Customer Information" if is_edit else "New Customer" }}</h3>
+            <p>
+                {% if is_edit %}
+                    Update information for {{ customer.user.name }}.
+                {% else %}
+                    Create a customer account and profile.
+                {% endif %}
+            </p>
+        </div>
+
+        <a href="{{ url_for('customers.list_customers') }}"
+           class="btn btn-secondary">
+            ← Back to Customers
+        </a>
+    </div>
+
+    <form method="POST"
+          action="{{ url_for('customers.edit_customer', customer_id=customer.id) if is_edit else url_for('customers.create_customer') }}"
+          class="product-form">
+
+        <input type="hidden" name="csrf_token"
+               value="{{ csrf_token() }}">
+
+        <!-- Account Information -->
+        <div class="form-section">
+
+            <h3 class="form-section-title">Account Information</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="name">Customer Name <span>*</span></label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        class="product-input"
+                        maxlength="120"
+                        value="{{ customer.user.name if is_edit else request.form.get('name', '') }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address <span>*</span></label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="product-input"
+                        maxlength="255"
+                        value="{{ customer.user.email if is_edit else request.form.get('email', '') }}"
+                        required
+                    >
+                </div>
+
+                {% if not is_edit %}
+                <div class="form-group">
+                    <label for="password">Initial Password <span>*</span></label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="product-input"
+                        minlength="8"
+                        required
+                    >
+                    <span class="form-hint">
+                        The customer can use this password to log in.
+                    </span>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <!-- Company Information -->
+        <div class="form-section">
+
+            <h3 class="form-section-title">Company Information</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="company_name">Company Name</label>
+                    <input
+                        type="text"
+                        id="company_name"
+                        name="company_name"
+                        class="product-input"
+                        maxlength="180"
+                        value="{{ customer.company_name or '' if is_edit else request.form.get('company_name', '') }}"
+                        placeholder="Company or organization name"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="tax_identifier">Tax Identifier</label>
+                    <input
+                        type="text"
+                        id="tax_identifier"
+                        name="tax_identifier"
+                        class="product-input"
+                        maxlength="80"
+                        value="{{ customer.tax_identifier or '' if is_edit else request.form.get('tax_identifier', '') }}"
+                        placeholder="GSTIN or other tax ID"
+                    >
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="form-section">
+
+            <h3 class="form-section-title">Contact Information</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        class="product-input"
+                        maxlength="40"
+                        value="{{ customer.phone or '' if is_edit else request.form.get('phone', '') }}"
+                        placeholder="Enter phone number"
+                    >
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="billing_address">Billing Address</label>
+                    <textarea
+                        id="billing_address"
+                        name="billing_address"
+                        class="product-textarea"
+                        rows="4"
+                        placeholder="Enter complete billing address..."
+                    >{{ customer.billing_address or '' if is_edit else request.form.get('billing_address', '') }}</textarea>
+                </div>
+
+            </div>
+        </div>
+
+        {% if is_edit %}
+        <div class="form-section">
+            <h3 class="form-section-title">Account Status</h3>
+
+            <label>
+                <input
+                    type="checkbox"
+                    name="is_active"
+                    {% if customer.user.is_active %}checked{% endif %}
+                >
+                Customer account is active
+            </label>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="form-actions">
+
+            <a href="{{ url_for('customers.list_customers') }}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn">
+                {{ "Save Changes" if is_edit else "Create Customer" }}
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/customers.js') }}"></script>
+{% endblock %}

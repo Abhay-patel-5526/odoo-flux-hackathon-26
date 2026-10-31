@@ -1,0 +1,248 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}{{ invoice.number }}{% endblock %}
+{% block page_heading %}Invoice details{% endblock %}
+{% block page_description %}View invoice information and payment status.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/invoices.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="invoice-page">
+
+    <div class="invoice-detail-toolbar">
+        <a href="{{ url_for('invoices.list_invoices') }}" class="invoice-btn invoice-btn-light">
+            ← Back to invoices
+        </a>
+
+        <div class="invoice-detail-actions">
+            {% if invoice.status == 'draft' %}
+            <a href="{{ url_for('invoices.edit_invoice', invoice_id=invoice.id) }}"
+               class="invoice-btn invoice-btn-secondary">Edit draft</a>
+
+            <form method="POST" action="{{ url_for('invoices.issue_invoice', invoice_id=invoice.id) }}"
+                  onsubmit="return confirm('Issue this invoice? You will no longer be able to edit it.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="invoice-btn invoice-btn-primary">Issue invoice</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <section class="invoice-panel invoice-document">
+
+        <div class="invoice-document-header">
+            <div>
+                <div class="invoice-document-label">INVOICE</div>
+                <h2>{{ invoice.number }}</h2>
+                <p class="invoice-muted">Issued {{ invoice.issue_date.strftime('%d %B %Y') }}</p>
+            </div>
+
+            <span class="invoice-status status-{{ display_status }}">
+                {{ display_status.replace('_', ' ')|title }}
+            </span>
+        </div>
+
+        <div class="invoice-parties">
+            <div>
+                <h4>Bill to</h4>
+                <strong>{{ invoice.customer.company_name or invoice.customer.user.name }}</strong>
+                <p>{{ invoice.customer.user.name }}</p>
+                {% if invoice.customer.phone %}
+                <p>{{ invoice.customer.phone }}</p>
+                {% endif %}
+                {% if invoice.customer.billing_address %}
+                <p>{{ invoice.customer.billing_address }}</p>
+                {% endif %}
+                {% if invoice.customer.tax_identifier %}
+                <p>Tax ID: {{ invoice.customer.tax_identifier }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <h4>Invoice details</h4>
+                <p><strong>Issue date:</strong> {{ invoice.issue_date.strftime('%d %b %Y') }}</p>
+                <p><strong>Due date:</strong> {{ invoice.due_date.strftime('%d %b %Y') }}</p>
+                <p><strong>Currency:</strong> INR (₹)</p>
+
+                {% if invoice.subscription %}
+                <p><strong>Subscription:</strong> {{ invoice.subscription.number }}</p>
+                {% else %}
+                <p><strong>Subscription:</strong> Direct invoice</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="invoice-table-wrap">
+            <table class="invoice-table invoice-line-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Unit price</th>
+                        <th>Tax</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for line in invoice.lines %}
+                    <tr>
+                        <td>
+                            <strong>{{ line.description }}</strong>
+                        </td>
+                        <td>{{ line.quantity }}</td>
+                        <td>₹{{ "%.2f"|format(line.unit_price) }}</td>
+                        <td>{{ "%.2f"|format(line.tax_percentage) }}%</td>
+                        <td class="text-right">
+                            ₹{{ "%.2f"|format(line.line_subtotal + line.line_tax) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="invoice-summary">
+            <div class="invoice-summary-row">
+                <span>Subtotal</span>
+                <strong>₹{{ "%.2f"|format(invoice.subtotal) }}</strong>
+            </div>
+
+            <div class="invoice-summary-row">
+                <span>Discount</span>
+                <strong>− ₹{{ "%.2f"|format(invoice.discount_amount) }}</strong>
+            </div>
+
+            <div class="invoice-summary-row">
+                <span>Tax</span>
+                <strong>₹{{ "%.2f"|format(invoice.tax_amount) }}</strong>
+            </div>
+
+            <div class="invoice-summary-row invoice-summary-total">
+                <span>Total</span>
+                <strong>₹{{ "%.2f"|format(invoice.total) }}</strong>
+            </div>
+
+            <div class="invoice-summary-row">
+                <span>Amount paid</span>
+                <strong>₹{{ "%.2f"|format(invoice.paid_amount) }}</strong>
+            </div>
+
+            <div class="invoice-summary-row invoice-outstanding">
+                <span>Outstanding</span>
+                <strong>₹{{ "%.2f"|format(invoice.outstanding_amount) }}</strong>
+            </div>
+        </div>
+
+        {% if invoice.notes %}
+        <div class="invoice-notes">
+            <h4>Notes</h4>
+            <p>{{ invoice.notes }}</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="invoice-panel invoice-payment-panel">
+        <div class="invoice-panel-heading">
+            <h3>Payment history</h3>
+            <p>Payments recorded against this invoice.</p>
+        </div>
+
+        {% if invoice.payments %}
+        <div class="invoice-table-wrap">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Note</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in invoice.payments %}
+                    <tr>
+                        <td>{{ payment.reference }}</td>
+                        <td>{{ payment.payment_date.strftime('%d %b %Y') }}</td>
+                        <td>{{ payment.method.replace('_', ' ')|title }}</td>
+                        <td>{{ payment.note or '—' }}</td>
+                        <td class="text-right invoice-money">
+                            ₹{{ "%.2f"|format(payment.amount) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="invoice-muted invoice-no-payments">No payments recorded yet.</p>
+        {% endif %}
+    </section>
+
+    {% if invoice.status == 'confirmed' and invoice.outstanding_amount > 0 %}
+    <section class="invoice-panel invoice-record-payment">
+        <div class="invoice-panel-heading">
+            <h3>Record a payment</h3>
+            <p>Outstanding amount: <strong>₹{{ "%.2f"|format(invoice.outstanding_amount) }}</strong></p>
+        </div>
+
+        <form method="POST"
+              action="{{ url_for('invoices.record_payment', invoice_id=invoice.id) }}"
+              class="payment-form">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="invoice-two-columns">
+                <div class="invoice-field">
+                    <label for="amount">Payment amount (₹) <span class="required">*</span></label>
+                    <input type="number" id="amount" name="amount"
+                           min="0.01" max="{{ invoice.outstanding_amount }}"
+                           step="0.01" required>
+                </div>
+
+                <div class="invoice-field">
+                    <label for="payment_date">Payment date <span class="required">*</span></label>
+                    <input type="date" id="payment_date" name="payment_date"
+                           value="{{ today.isoformat() }}" required>
+                </div>
+            </div>
+
+            <div class="invoice-two-columns">
+                <div class="invoice-field">
+                    <label for="method">Payment method <span class="required">*</span></label>
+                    <select id="method" name="method" required>
+                        <option value="">Select method</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank_transfer">Bank transfer</option>
+                        <option value="upi">UPI</option>
+                        <option value="card">Card</option>
+                        <option value="cheque">Cheque</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="invoice-field">
+                    <label for="reference">Payment reference</label>
+                    <input type="text" id="reference" name="reference"
+                           placeholder="Transaction ID or receipt number">
+                </div>
+            </div>
+
+            <div class="invoice-field">
+                <label for="note">Note</label>
+                <textarea id="note" name="note" rows="3"
+                          placeholder="Optional payment note..."></textarea>
+            </div>
+
+            <button type="submit" class="invoice-btn invoice-btn-primary">
+                Record payment
+            </button>
+        </form>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

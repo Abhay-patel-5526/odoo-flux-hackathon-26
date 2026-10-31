@@ -1,0 +1,191 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}{{ plan.name }}{% endblock %}
+{% block page_heading %}{{ plan.name }}{% endblock %}
+{% block page_description %}Plan details and subscription settings.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/plans.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="product-page">
+
+    <!-- Header -->
+    <div class="product-toolbar">
+        <div>
+            <h1>{{ plan.name }}</h1>
+            <p>Plan #{{ plan.id }} · {{ plan.product.name }}</p>
+        </div>
+
+        {% if current_user.role == "admin" %}
+        <div class="product-detail-actions">
+
+            <a href="{{ url_for('plans.edit_plan', plan_id=plan.id) }}"
+               class="btn btn-primary">
+                Edit Plan
+            </a>
+
+            {% if plan.is_active %}
+            <form method="POST"
+                  action="{{ url_for('plans.archive_plan', plan_id=plan.id) }}"
+                  style="display:inline;"
+                  data-confirm="Are you sure you want to archive this plan?">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <button type="submit" class="btn btn-danger">
+                    Archive
+                </button>
+            </form>
+            {% else %}
+            <form method="POST"
+                  action="{{ url_for('plans.restore_plan', plan_id=plan.id) }}"
+                  style="display:inline;"
+                  data-confirm="Restore this plan?">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <button type="submit" class="btn btn-primary">
+                    Restore
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Status -->
+    <div class="form-section">
+        <h2>Plan Status</h2>
+
+        {% if plan.is_active %}
+        <span class="status-badge active">Active</span>
+        {% else %}
+        <span class="status-badge archived">Archived</span>
+        {% endif %}
+    </div>
+
+    <!-- Basic Information -->
+    <div class="form-section">
+        <h2>Basic Information</h2>
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <span>Plan Name</span>
+                <strong>{{ plan.name }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Linked Product</span>
+                <strong>{{ plan.product.name }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Plan Price</span>
+                <strong>₹{{ "%.2f"|format(plan.price) }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Billing Interval</span>
+                <strong>{{ plan.billing_interval|capitalize }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Minimum Quantity</span>
+                <strong>{{ plan.minimum_quantity }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Product Status</span>
+                <strong>{{ "Active" if plan.product.is_active else "Archived" }}</strong>
+            </div>
+
+        </div>
+
+        <div class="product-notes">
+            <h3>Description</h3>
+            <p>{{ plan.description or "No description provided." }}</p>
+        </div>
+    </div>
+
+    <!-- Availability -->
+    <div class="form-section">
+        <h2>Availability</h2>
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <span>Available From</span>
+                <strong>{{ plan.available_from or "No start date" }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Available Until</span>
+                <strong>{{ plan.available_until or "No end date" }}</strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Subscription Settings -->
+    <div class="form-section">
+        <h2>Subscription Settings</h2>
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <span>Automatic Closure</span>
+                <strong>{{ "Enabled" if plan.auto_close else "Disabled" }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Early Closure</span>
+                <strong>{{ "Allowed" if plan.allow_early_close else "Not allowed" }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Pause Subscription</span>
+                <strong>{{ "Allowed" if plan.allow_pause else "Not allowed" }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Renewal</span>
+                <strong>{{ "Allowed" if plan.allow_renewal else "Not allowed" }}</strong>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Record Information -->
+    <div class="form-section">
+        <h2>Record Information</h2>
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <span>Created At</span>
+                <strong>{{ plan.created_at.strftime("%d %b %Y, %I:%M %p") }}</strong>
+            </div>
+
+            <div class="detail-item">
+                <span>Last Updated</span>
+                <strong>{{ plan.updated_at.strftime("%d %b %Y, %I:%M %p") }}</strong>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ url_for('plans.list_plans') }}" class="btn btn-secondary">
+            ← Back to Plans
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

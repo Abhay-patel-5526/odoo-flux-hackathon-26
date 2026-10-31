@@ -1,0 +1,105 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Quotation Templates{% endblock %}
+{% block page_heading %}Quotation Templates{% endblock %}
+{% block page_description %}Manage reusable quotation formats and predefined product lines.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quotations.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="page-toolbar">
+    <a href="{{ url_for('quotations.list_quotations') }}" class="btn btn-secondary">
+        &larr; Quotations
+    </a>
+
+    <a href="{{ url_for('quotations.create_template') }}" class="btn btn-primary">
+        + New Template
+    </a>
+</div>
+
+<div class="quotation-template-grid">
+
+    {% for template in quotation_templates %}
+    <div class="content-card quotation-template-card">
+
+        <div class="template-card-header">
+            <h3>{{ template.name }}</h3>
+
+            <span class="status-badge {{ 'status-active' if template.is_active else 'status-archived' }}">
+                {{ 'Active' if template.is_active else 'Inactive' }}
+            </span>
+        </div>
+
+        <p>{{ template.notes or 'No template description provided.' }}</p>
+
+        <div class="template-meta">
+            <span>
+                <strong>Validity:</strong>
+                {{ template.validity_days }} days
+            </span>
+
+            <span>
+                <strong>Products:</strong>
+                {{ template.lines|length }}
+            </span>
+        </div>
+
+        {% if template.lines %}
+        <div class="template-product-list">
+            {% for line in template.lines %}
+            <div class="template-product-item">
+                <span>{{ line.product.name }}</span>
+                <span>Qty: {{ line.quantity }}</span>
+
+                {% if line.plan %}
+                <small>{{ line.plan.name }}</small>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="template-card-actions">
+            <a href="{{ url_for('quotations.edit_template', template_id=template.id) }}"
+               class="btn btn-secondary">
+                Edit
+            </a>
+
+            <form method="POST"
+                  action="{{ url_for('quotations.toggle_template_status', template_id=template.id) }}"
+                  data-confirm="Change this template's active status?">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <button type="submit"
+                        class="btn {{ 'btn-danger' if template.is_active else 'btn-primary' }}">
+                    {{ 'Deactivate' if template.is_active else 'Activate' }}
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    {% else %}
+    <div class="content-card empty-state">
+        <h3>No quotation templates yet</h3>
+        <p>Create a reusable template to speed up quotation preparation.</p>
+
+        <a href="{{ url_for('quotations.create_template') }}"
+           class="btn btn-primary">
+            Create Template
+        </a>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/quotations.js') }}" defer></script>
+{% endblock %}

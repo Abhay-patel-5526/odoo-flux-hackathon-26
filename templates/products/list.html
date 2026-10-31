@@ -1,0 +1,207 @@
+
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Products{% endblock %}
+
+{% block page_heading %}Products{% endblock %}
+
+{% block page_description %}
+Manage your product catalogue and available variants.
+{% endblock %}
+
+
+{% block product_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/products.css') }}">
+{% endblock %}
+
+
+{% block dashboard_content %}
+
+<div class="product-page">
+
+    <!-- Toolbar -->
+    <div class="product-toolbar">
+
+        <div>
+            <h3>Product Catalogue</h3>
+            <p>
+                {{ products|length }} product(s) found
+            </p>
+        </div>
+
+        {% if current_user.role == "admin" %}
+        <a href="{{ url_for('products.create_product') }}" class="btn">
+            + Create Product
+        </a>
+        {% endif %}
+
+    </div>
+
+
+    <!-- Search and filters -->
+    <div class="panel" style="margin-bottom: 22px;">
+
+        <form method="GET"
+              action="{{ url_for('products.list_products') }}"
+              class="product-toolbar"
+              style="margin-bottom: 0;">
+
+            <div class="product-search">
+
+                <input
+                    type="search"
+                    name="search"
+                    class="product-input"
+                    placeholder="Search products..."
+                    value="{{ search }}"
+                    aria-label="Search products"
+                >
+
+                <button type="submit" class="btn">
+                    Search
+                </button>
+
+            </div>
+
+
+            <div class="product-filters">
+
+                <select
+                    name="status"
+                    class="product-select"
+                    aria-label="Filter products by status"
+                    onchange="this.form.submit()"
+                >
+                    <option value="active"
+                        {% if status == "active" %}selected{% endif %}>
+                        Active Products
+                    </option>
+
+                    <option value="archived"
+                        {% if status == "archived" %}selected{% endif %}>
+                        Archived Products
+                    </option>
+
+                    <option value="all"
+                        {% if status == "all" %}selected{% endif %}>
+                        All Products
+                    </option>
+                </select>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- Product cards -->
+    {% if products %}
+
+    <div class="product-grid">
+
+        {% for product in products %}
+
+        <article class="product-card">
+
+            <div class="product-card-top">
+
+                <div class="product-icon">
+                    ◈
+                </div>
+
+                {% if product.is_active %}
+                    <span class="status active">Active</span>
+                {% else %}
+                    <span class="status cancelled">Archived</span>
+                {% endif %}
+
+            </div>
+
+
+            <h4>{{ product.name }}</h4>
+
+            <p class="product-type">
+                {{ product.product_type|title }}
+            </p>
+
+
+            <div class="product-price">
+                ₹{{ "%.2f"|format(product.sales_price|float) }}
+                <small>Sales price</small>
+            </div>
+
+
+            <div class="product-card-footer">
+
+                <span class="stat-note">
+                    {{ product.variants|selectattr('is_active')|list|length }}
+                    active variant(s)
+                </span>
+
+                <a href="{{ url_for(
+                    'products.product_detail',
+                    product_id=product.id
+                ) }}">
+                    View details →
+                </a>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <!-- Empty state -->
+    <div class="panel">
+
+        <div class="empty-state">
+
+            <strong>
+                {% if search %}
+                    No matching products found
+                {% elif status == "archived" %}
+                    No archived products
+                {% else %}
+                    No products yet
+                {% endif %}
+            </strong>
+
+            <p>
+                {% if search %}
+                    Try a different search term.
+                {% elif status == "archived" %}
+                    Archived products will appear here.
+                {% else %}
+                    Start building your product catalogue.
+                {% endif %}
+            </p>
+
+            {% if current_user.role == "admin" and status != "archived" %}
+                <br>
+
+                <a href="{{ url_for('products.create_product') }}"
+                   class="btn">
+                    + Create your first product
+                </a>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/products.js') }}"></script>
+{% endblock %}

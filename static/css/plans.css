@@ -1,0 +1,83 @@
+/* Plans page */
+
+.plans-page {
+    width: 100%;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.archived {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.product-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.product-detail-header h3 {
+    margin: 0 0 5px;
+}
+
+.product-detail-header p {
+    margin: 0;
+    color: var(--text-muted, #777);
+}
+
+.product-detail-actions {
+    margin-top: 18px;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    padding: 45px 20px;
+    text-align: center;
+    border: 1px dashed #ccc;
+    border-radius: 12px;
+}
+
+.empty-state p {
+    color: var(--text-muted, #777);
+}
+
+
+/* Plan detail page */
+
+.product-notes {
+    margin-top: 24px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.product-notes h3 {
+    margin-bottom: 8px;
+}
+
+.product-notes p {
+    color: var(--text-muted, #777);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 9px 15px;
+    border-radius: 7px;
+    cursor: pointer;
+}

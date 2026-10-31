@@ -1,0 +1,581 @@
+
+{% extends "auth/_layout.html" %}
+
+{% block page_title %}Create Account{% endblock %}
+
+{% block auth_content %}
+
+<div class="auth-header">
+    <h1>Create your account</h1>
+    <p>Get started with Brightloop today.</p>
+</div>
+
+<form method="POST"
+      action="{{ url_for('auth.register') }}"
+      id="registerForm">
+
+    <!-- CSRF PROTECTION -->
+    <input
+        type="hidden"
+        name="csrf_token"
+        value="{{ csrf_token() }}"
+    >
+
+    <!-- FULL NAME -->
+    <div class="form-group">
+        <label for="name" class="form-label">
+            Full name
+        </label>
+
+        <input
+            type="text"
+            id="name"
+            name="name"
+            class="form-control"
+            placeholder="Enter your full name"
+            autocomplete="name"
+            maxlength="120"
+            required
+        >
+    </div>
+
+    <!-- EMAIL -->
+    <div class="form-group">
+        <label for="email" class="form-label">
+            Email address
+        </label>
+
+        <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-control"
+            placeholder="you@example.com"
+            autocomplete="email"
+            maxlength="254"
+            required
+        >
+    </div>
+
+    <!-- COMPANY NAME -->
+    <div class="form-group">
+        <label for="company_name" class="form-label">
+            Company name
+            <span class="optional-label">(Optional)</span>
+        </label>
+
+        <input
+            type="text"
+            id="company_name"
+            name="company_name"
+            class="form-control"
+            placeholder="Your company name"
+            autocomplete="organization"
+        >
+    </div>
+
+    <!-- PASSWORD -->
+    <div class="form-group">
+
+        <label for="password" class="form-label">
+            Password
+        </label>
+
+        <div class="password-wrapper">
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                placeholder="Create a strong password"
+                autocomplete="new-password"
+                required
+            >
+
+            <button
+                type="button"
+                class="password-toggle"
+                data-target="password"
+                aria-label="Show password"
+                aria-pressed="false"
+            >
+                Show
+            </button>
+
+        </div>
+
+        <!-- PASSWORD STRENGTH -->
+        <div class="strength-section">
+
+            <div class="strength-track">
+                <div id="strengthBar" class="strength-bar"></div>
+            </div>
+
+            <div class="strength-info">
+                <span>Password strength</span>
+                <strong id="strengthText">Not entered</strong>
+            </div>
+
+        </div>
+
+        <!-- PASSWORD REQUIREMENTS -->
+        <div class="password-rules">
+
+            <p id="rule-length">
+                <span class="rule-icon">○</span>
+                More than 8 characters
+            </p>
+
+            <p id="rule-upper">
+                <span class="rule-icon">○</span>
+                At least one uppercase letter
+            </p>
+
+            <p id="rule-lower">
+                <span class="rule-icon">○</span>
+                At least one lowercase letter
+            </p>
+
+            <p id="rule-special">
+                <span class="rule-icon">○</span>
+                At least one special character
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- CONFIRM PASSWORD -->
+    <div class="form-group">
+
+        <label for="confirm_password" class="form-label">
+            Confirm password
+        </label>
+
+        <div class="password-wrapper">
+
+            <input
+                type="password"
+                id="confirm_password"
+                name="confirm_password"
+                class="form-control"
+                placeholder="Re-enter your password"
+                autocomplete="new-password"
+                required
+            >
+
+            <button
+                type="button"
+                class="password-toggle"
+                data-target="confirm_password"
+                aria-label="Show confirmation password"
+                aria-pressed="false"
+            >
+                Show
+            </button>
+
+        </div>
+
+        <p id="matchMessage" class="match-message"></p>
+
+    </div>
+
+    <!-- TERMS -->
+    <div class="terms-section">
+
+        <label class="checkbox-group">
+            <input
+                type="checkbox"
+                id="terms"
+                required
+            >
+
+            <span>
+                I agree to the
+                <a href="#" onclick="return false;">Terms of Service</a>
+                and
+                <a href="#" onclick="return false;">Privacy Policy</a>.
+            </span>
+        </label>
+
+    </div>
+
+    <!-- SUBMIT -->
+    <button
+        type="submit"
+        class="btn btn-primary register-button"
+        id="registerButton"
+    >
+        Create account
+        <span aria-hidden="true">&rarr;</span>
+    </button>
+
+</form>
+
+<div class="auth-divider"></div>
+
+<div class="auth-footer">
+    Already have an account?
+    <a href="{{ url_for('auth.login') }}">Sign in</a>
+</div>
+
+{% endblock %}
+
+
+{% block extra_head %}
+
+<style>
+
+    /* PASSWORD INPUT */
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-wrapper .form-control {
+        padding-right: 75px;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 650;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    .optional-label {
+        color: var(--muted);
+        font-weight: 400;
+        font-size: 11px;
+    }
+
+
+    /* PASSWORD STRENGTH */
+
+    .strength-section {
+        margin-top: 12px;
+    }
+
+    .strength-track {
+        height: 5px;
+        width: 100%;
+        background: #e9eaf0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .strength-bar {
+        width: 0%;
+        height: 100%;
+        background: #d9364f;
+        border-radius: 10px;
+        transition: width 0.25s, background 0.25s;
+    }
+
+    .strength-info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    .strength-info strong {
+        color: var(--muted);
+    }
+
+
+    /* PASSWORD REQUIREMENTS */
+
+    .password-rules {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px 10px;
+        margin-top: 13px;
+    }
+
+    .password-rules p {
+        font-size: 11px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .rule-icon {
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .password-rules p.valid {
+        color: var(--success);
+    }
+
+
+    /* PASSWORD MATCH */
+
+    .match-message {
+        font-size: 11px;
+        margin-top: 6px;
+    }
+
+    .match-success {
+        color: var(--success);
+    }
+
+    .match-error {
+        color: var(--danger);
+    }
+
+
+    /* TERMS */
+
+    .terms-section {
+        margin: 5px 0 22px;
+    }
+
+    .terms-section .checkbox-group {
+        align-items: flex-start;
+        line-height: 1.6;
+    }
+
+    .terms-section input {
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+
+    /* SUBMIT BUTTON */
+
+    .register-button {
+        gap: 10px;
+    }
+
+    .register-button span {
+        font-size: 19px;
+        transition: transform 0.2s;
+    }
+
+    .register-button:hover span {
+        transform: translateX(4px);
+    }
+
+    .register-button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+
+    /* MOBILE */
+
+    @media (max-width: 400px) {
+        .password-rules {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script>
+
+    // ==================================
+    // SHOW / HIDE PASSWORD
+    // ==================================
+
+    document.querySelectorAll(".password-toggle").forEach(button => {
+
+        button.addEventListener("click", function () {
+
+            const input = document.getElementById(
+                this.dataset.target
+            );
+
+            const isHidden = input.type === "password";
+
+            input.type = isHidden ? "text" : "password";
+
+            this.textContent = isHidden ? "Hide" : "Show";
+
+            this.setAttribute("aria-pressed", String(isHidden));
+
+            this.setAttribute(
+                "aria-label",
+                isHidden ? "Hide password" : "Show password"
+            );
+
+        });
+
+    });
+
+
+    // ==================================
+    // PASSWORD VALIDATION
+    // ==================================
+
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirm_password");
+
+    const strengthBar = document.getElementById("strengthBar");
+    const strengthText = document.getElementById("strengthText");
+
+    const rules = {
+        length: document.getElementById("rule-length"),
+        upper: document.getElementById("rule-upper"),
+        lower: document.getElementById("rule-lower"),
+        special: document.getElementById("rule-special")
+    };
+
+
+    function updatePasswordStrength() {
+
+        const value = password.value;
+
+        const checks = {
+            length: value.length > 8,
+            upper: /[A-Z]/.test(value),
+            lower: /[a-z]/.test(value),
+            special: /[^A-Za-z0-9]/.test(value)
+        };
+
+        let score = 0;
+
+        Object.entries(checks).forEach(([key, passed]) => {
+
+            const rule = rules[key];
+
+            rule.classList.toggle("valid", passed);
+
+            rule.querySelector(".rule-icon").textContent =
+                passed ? "✓" : "○";
+
+            if (passed) score++;
+
+        });
+
+
+        const strengthLevels = [
+            { text: "Weak", color: "#d9364f" },
+            { text: "Weak", color: "#d9364f" },
+            { text: "Fair", color: "#d99a28" },
+            { text: "Good", color: "#2875c7" },
+            { text: "Strong", color: "#168653" }
+        ];
+
+        strengthBar.style.width = (score * 25) + "%";
+
+        strengthBar.style.background =
+            strengthLevels[score].color;
+
+        strengthText.textContent =
+            value.length === 0
+                ? "Not entered"
+                : strengthLevels[score].text;
+
+        strengthText.style.color =
+            value.length === 0
+                ? "var(--muted)"
+                : strengthLevels[score].color;
+
+        updatePasswordMatch();
+
+    }
+
+
+    // ==================================
+    // CONFIRM PASSWORD VALIDATION
+    // ==================================
+
+    const matchMessage = document.getElementById("matchMessage");
+
+    function updatePasswordMatch() {
+
+        const first = password.value;
+        const second = confirmPassword.value;
+
+        if (!second) {
+            matchMessage.textContent = "";
+            matchMessage.className = "match-message";
+            confirmPassword.setCustomValidity("");
+            return;
+        }
+
+        if (first === second) {
+
+            matchMessage.textContent = "✓ Passwords match";
+            matchMessage.className =
+                "match-message match-success";
+
+            confirmPassword.setCustomValidity("");
+
+        } else {
+
+            matchMessage.textContent = "✕ Passwords do not match";
+            matchMessage.className =
+                "match-message match-error";
+
+            confirmPassword.setCustomValidity(
+                "Passwords do not match."
+            );
+
+        }
+
+    }
+
+
+    password.addEventListener("input", updatePasswordStrength);
+
+    confirmPassword.addEventListener(
+        "input",
+        updatePasswordMatch
+    );
+
+
+    // ==================================
+    // FORM SUBMISSION
+    // ==================================
+
+    const registerForm = document.getElementById("registerForm");
+
+    const registerButton = document.getElementById("registerButton");
+
+    registerForm.addEventListener("submit", function (event) {
+
+        updatePasswordStrength();
+        updatePasswordMatch();
+
+        const validPassword =
+            password.value.length > 8 &&
+            /[A-Z]/.test(password.value) &&
+            /[a-z]/.test(password.value) &&
+            /[^A-Za-z0-9]/.test(password.value);
+
+        if (!validPassword || !registerForm.checkValidity()) {
+
+            event.preventDefault();
+            registerForm.reportValidity();
+            return;
+
+        }
+
+        registerButton.disabled = true;
+        registerButton.textContent = "Creating account...";
+
+    });
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Invoices{% endblock %}
+{% block page_heading %}Invoices{% endblock %}
+{% block page_description %}Create, manage, and track customer invoices.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/invoices.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="invoice-page">
+
+    <div class="invoice-toolbar">
+        <form method="GET" action="{{ url_for('invoices.list_invoices') }}" class="invoice-filter-form">
+            <input
+                type="search"
+                name="search"
+                value="{{ request.args.get('search', '') }}"
+                placeholder="Search invoice or customer..."
+                class="invoice-search"
+            >
+
+            <select name="status" class="invoice-select">
+                <option value="">All statuses</option>
+                {% for status in ['draft', 'confirmed', 'paid', 'overdue', 'cancelled'] %}
+                <option value="{{ status }}"
+                    {% if request.args.get('status') == status %}selected{% endif %}>
+                    {{ status.replace('_', ' ')|title }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="invoice-btn invoice-btn-secondary">Filter</button>
+            <a href="{{ url_for('invoices.list_invoices') }}" class="invoice-btn invoice-btn-light">Clear</a>
+        </form>
+
+        <a href="{{ url_for('invoices.create_invoice') }}" class="invoice-btn invoice-btn-primary">
+            + Create invoice
+        </a>
+    </div>
+
+    <div class="invoice-table-card">
+        {% if invoices %}
+        <div class="invoice-table-wrap">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Issue date</th>
+                        <th>Due date</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for invoice in invoices %}
+                    {% set overdue = invoice.is_overdue %}
+                    <tr>
+                        <td>
+                            <a class="invoice-number"
+                               href="{{ url_for('invoices.invoice_detail', invoice_id=invoice.id) }}">
+                                {{ invoice.number }}
+                            </a>
+                        </td>
+
+                        <td>
+                            <div class="invoice-customer-name">
+                                {{ invoice.customer.company_name or invoice.customer.user.name }}
+                            </div>
+                            <div class="invoice-muted">
+                                {{ invoice.customer.user.name }}
+                            </div>
+                        </td>
+
+                        <td>{{ invoice.issue_date.strftime('%d %b %Y') }}</td>
+                        <td>{{ invoice.due_date.strftime('%d %b %Y') }}</td>
+
+                        <td class="invoice-money">₹{{ "%.2f"|format(invoice.total) }}</td>
+                        <td class="invoice-money">₹{{ "%.2f"|format(invoice.paid_amount) }}</td>
+
+                        <td>
+                            <span class="invoice-status status-{{ 'overdue' if overdue else invoice.status }}">
+                                {{ 'Overdue' if overdue else invoice.status.replace('_', ' ')|title }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <a class="invoice-action-link"
+                               href="{{ url_for('invoices.invoice_detail', invoice_id=invoice.id) }}">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="invoice-empty">
+            <div class="invoice-empty-icon">▤</div>
+            <h3>No invoices found</h3>
+            <p>Create your first invoice or adjust your search filters.</p>
+            <a href="{{ url_for('invoices.create_invoice') }}" class="invoice-btn invoice-btn-primary">
+                Create invoice
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

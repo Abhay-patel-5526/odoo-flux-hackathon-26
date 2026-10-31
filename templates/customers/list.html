@@ -1,0 +1,145 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Customers{% endblock %}
+{% block page_heading %}Customers{% endblock %}
+{% block page_description %}Manage your customer accounts and information.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customers.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="product-page">
+
+    <!-- Page Header -->
+    <div class="product-toolbar">
+        <div>
+            <h1>Customers</h1>
+            <p>Manage customer accounts and information.</p>
+        </div>
+
+        {% if current_user.role == "admin" %}
+        <a href="{{ url_for('customers.create_customer') }}"
+           class="btn btn-primary">
+            + Add Customer
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="product-filters">
+
+        <form method="GET" class="product-search">
+            <input
+                type="text"
+                name="q"
+                class="product-input"
+                placeholder="Search name, email or company..."
+                value="{{ search or '' }}"
+            >
+
+            <input type="hidden" name="status" value="{{ status or 'active' }}">
+
+            <button type="submit" class="btn btn-secondary">
+                Search
+            </button>
+        </form>
+
+        <form method="GET" id="customer-filter-form">
+            <input type="hidden" name="q" value="{{ search or '' }}">
+
+            <select
+                name="status"
+                class="product-select"
+                onchange="this.form.submit()"
+            >
+                <option value="active" {% if status == "active" %}selected{% endif %}>
+                    Active Customers
+                </option>
+
+                <option value="inactive" {% if status == "inactive" %}selected{% endif %}>
+                    Inactive Customers
+                </option>
+
+                <option value="all" {% if status == "all" %}selected{% endif %}>
+                    All Customers
+                </option>
+            </select>
+        </form>
+
+    </div>
+
+    <!-- Customer Grid -->
+    <div class="product-grid">
+
+        {% for customer in customers %}
+
+        <div class="product-card customer-card">
+
+            <div class="product-detail-header">
+                <div>
+                    <h3>{{ customer.user.name }}</h3>
+                    <p>{{ customer.company_name or "Individual Customer" }}</p>
+                </div>
+
+                {% if customer.user.is_active %}
+                <span class="status-badge active">Active</span>
+                {% else %}
+                <span class="status-badge archived">Inactive</span>
+                {% endif %}
+            </div>
+
+            <div class="customer-info">
+
+                <div class="detail-item">
+                    <span>Email</span>
+                    <strong>{{ customer.user.email }}</strong>
+                </div>
+
+                <div class="detail-item">
+                    <span>Phone</span>
+                    <strong>{{ customer.phone or "Not provided" }}</strong>
+                </div>
+
+                <div class="detail-item">
+                    <span>Customer ID</span>
+                    <strong>#{{ customer.id }}</strong>
+                </div>
+
+            </div>
+
+            <div class="product-detail-actions">
+                <a
+                    href="{{ url_for('customers.customer_detail', customer_id=customer.id) }}"
+                    class="btn btn-secondary"
+                >
+                    View Details →
+                </a>
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+            <h3>No customers found</h3>
+            <p>
+                {% if search %}
+                    No customers match your search.
+                {% elif status == "inactive" %}
+                    There are no inactive customers.
+                {% else %}
+                    Add your first customer to get started.
+                {% endif %}
+            </p>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

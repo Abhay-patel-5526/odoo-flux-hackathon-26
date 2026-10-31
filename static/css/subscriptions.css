@@ -1,0 +1,197 @@
+
+/* Subscription module */
+
+.subscription-card {
+    position: relative;
+}
+
+.subscription-card .product-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    background: #e5e7eb;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-draft {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.status-quotation {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-paused {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-closed {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Subscription form */
+
+.subscription-form {
+    width: 100%;
+}
+
+.subscription-form .form-section {
+    margin-bottom: 24px;
+}
+
+.subscription-form .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.subscription-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.subscription-form label {
+    font-weight: 600;
+}
+
+.subscription-form input,
+.subscription-form select,
+.subscription-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.subscription-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Detail page */
+
+.detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.detail-header h2 {
+    margin: 8px 0 4px;
+}
+
+.detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.detail-item span {
+    color: var(--text-muted, #6b7280);
+    font-size: 13px;
+}
+
+.detail-item strong {
+    overflow-wrap: anywhere;
+}
+
+.product-notes {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Tables */
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-responsive table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-responsive th,
+.table-responsive td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* Empty state */
+
+.empty-state {
+    width: 100%;
+    padding: 32px 20px;
+    text-align: center;
+    border: 1px dashed var(--border-color, #d1d5db);
+    border-radius: 12px;
+}
+
+.empty-state p {
+    color: var(--text-muted, #6b7280);
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+    .subscription-form .form-grid,
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-header {
+        flex-direction: column;
+    }
+
+    .detail-actions {
+        flex-direction: column;
+    }
+}
+.status-confirmed {
+    background: #ede9fe;
+    color: #5b21b6;
+}

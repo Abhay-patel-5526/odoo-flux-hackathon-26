@@ -1,0 +1,304 @@
+{% extends "dashboard/_layout.html" %}
+
+{% set is_edit = quotation is not none %}
+
+{% block page_title %}
+    {{ 'Edit Quotation' if is_edit else 'New Quotation' }}
+{% endblock %}
+
+{% block page_heading %}
+    {{ 'Edit Quotation' if is_edit else 'Create Quotation' }}
+{% endblock %}
+
+{% block page_description %}
+    Prepare a customer offer with products, quantities and pricing.
+{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quotations.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+
+<form method="POST"
+      action="{{ url_for('quotations.edit_quotation', quotation_id=quotation.id) if is_edit else url_for('quotations.create_quotation') }}"
+      class="product-form quotation-form"
+      id="quotation-form">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-section">
+        <div class="form-section-header">
+            <h3>Quotation Information</h3>
+        </div>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label for="customer_id">Customer *</label>
+                <select name="customer_id" id="customer_id" required>
+                    <option value="">Select customer</option>
+
+                    {% for customer in customers %}
+                    <option value="{{ customer.id }}"
+                        {% if is_edit and quotation.customer_id == customer.id %}selected{% endif %}
+                        {% if selected_customer_id is defined and selected_customer_id == customer.id %}selected{% endif %}>
+                        {{ customer.user.name }}
+                        {% if customer.company_name %} — {{ customer.company_name }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="template_id">Quotation Template</label>
+                <select name="template_id" id="template_id">
+                    <option value="">Start without a template</option>
+
+                    {% for template in quotation_templates %}
+                    <option value="{{ template.id }}"
+                        {% if is_edit and quotation.template_id == template.id %}selected{% endif %}>
+                        {{ template.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small>Selecting a template can prefill quotation lines.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="issue_date">Issue Date *</label>
+                <input
+                    type="date"
+                    name="issue_date"
+                    id="issue_date"
+                    value="{{ quotation.issue_date.isoformat() if is_edit else today.isoformat() }}"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="valid_until">Valid Until *</label>
+                <input
+                    type="date"
+                    name="valid_until"
+                    id="valid_until"
+                    value="{{ quotation.valid_until.isoformat() if is_edit else default_valid_until.isoformat() }}"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="currency">Currency *</label>
+                <select name="currency" id="currency" required>
+                    {% for code in ['INR', 'USD', 'EUR', 'GBP'] %}
+                    <option value="{{ code }}"
+                        {% if is_edit and quotation.currency == code %}selected{% elif not is_edit and code == 'INR' %}selected{% endif %}>
+                        {{ code }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-section-header">
+            <h3>Quotation Lines</h3>
+
+            <button type="button" class="btn btn-secondary" id="add-quotation-line">
+                + Add Product
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table quotation-lines-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Tax</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody id="quotation-lines">
+
+                    {% if is_edit and quotation.lines %}
+                        {% for line in quotation.lines %}
+                        <tr class="quotation-line">
+                            <td>
+                                <select name="product_id[]" class="line-product">
+                                    <option value="">Custom line</option>
+                                    {% for product in products %}
+                                    <option value="{{ product.id }}"
+                                        data-price="{{ product.sales_price }}"
+                                        {% if line.product_id == product.id %}selected{% endif %}>
+                                        {{ product.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+
+                            <td>
+                                <input type="text" name="description[]"
+                                       value="{{ line.description }}" required>
+                            </td>
+
+                            <td>
+                                <input type="number" name="quantity[]"
+                                       class="line-quantity" min="1"
+                                       value="{{ line.quantity }}" required>
+                            </td>
+
+                            <td>
+                                <input type="number" name="unit_price[]"
+                                       class="line-price" min="0" step="0.01"
+                                       value="{{ line.unit_price }}" required>
+                            </td>
+
+                            <td>
+                                <select name="tax_percentage[]" class="line-tax">
+                                    {% for tax in tax_rules %}
+                                    <option value="{{ tax.percentage }}"
+                                        {% if line.tax_percentage == tax.percentage %}selected{% endif %}>
+                                        {{ tax.name }} ({{ tax.percentage }}%)
+                                    </option>
+                                    {% endfor %}
+                                    <option value="0"
+                                        {% if not line.tax_percentage %}selected{% endif %}>
+                                        No Tax (0%)
+                                    </option>
+                                </select>
+                            </td>
+
+                            <td class="line-subtotal">0.00</td>
+
+                            <td>
+                                <button type="button" class="remove-line-btn"
+                                        aria-label="Remove product line">
+                                    &times;
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="quotation-line-actions">
+            <button type="button" class="btn btn-secondary" id="add-quotation-line-bottom">
+                + Add Another Product
+            </button>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Quotation Summary</h3>
+
+        <div class="quotation-summary">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <strong id="quotation-subtotal">0.00</strong>
+            </div>
+
+            <div class="summary-row">
+                <label for="discount_amount">Discount</label>
+                <input type="number" name="discount_amount" id="discount_amount"
+                       min="0" step="0.01"
+                       value="{{ quotation.discount_amount if is_edit else '0.00' }}">
+            </div>
+
+            <div class="summary-row">
+                <span>Tax</span>
+                <strong id="quotation-tax">0.00</strong>
+            </div>
+
+            <div class="summary-row summary-total">
+                <span>Grand Total</span>
+                <strong id="quotation-total">0.00</strong>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes / Terms and Conditions</label>
+            <textarea name="notes" id="notes" rows="4"
+                      placeholder="Add quotation notes or payment terms...">{{ quotation.notes if is_edit else '' }}</textarea>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ url_for('quotations.quotation_detail', quotation_id=quotation.id) if is_edit else url_for('quotations.list_quotations') }}"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+        <button type="submit" class="btn btn-primary">
+            {{ 'Save Changes' if is_edit else 'Create Quotation' }}
+        </button>
+    </div>
+
+</form>
+
+<!-- Product row template used by quotations.js -->
+<template id="quotation-line-template">
+    <tr class="quotation-line">
+        <td>
+            <select name="product_id[]" class="line-product">
+                <option value="">Custom line</option>
+                {% for product in products %}
+                <option value="{{ product.id }}"
+                        data-price="{{ product.sales_price }}">
+                    {{ product.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </td>
+
+        <td>
+            <input type="text" name="description[]" placeholder="Description" required>
+        </td>
+
+        <td>
+            <input type="number" name="quantity[]" class="line-quantity"
+                   min="1" value="1" required>
+        </td>
+
+        <td>
+            <input type="number" name="unit_price[]" class="line-price"
+                   min="0" step="0.01" value="0.00" required>
+        </td>
+
+        <td>
+            <select name="tax_percentage[]" class="line-tax">
+                <option value="0">No Tax (0%)</option>
+                {% for tax in tax_rules %}
+                <option value="{{ tax.percentage }}">
+                    {{ tax.name }} ({{ tax.percentage }}%)
+                </option>
+                {% endfor %}
+            </select>
+        </td>
+
+        <td class="line-subtotal">0.00</td>
+
+        <td>
+            <button type="button" class="remove-line-btn"
+                    aria-label="Remove product line">
+                &times;
+            </button>
+        </td>
+    </tr>
+</template>
+
+{% endblock %}
+
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/quotations.js') }}" defer></script>
+{% endblock %}

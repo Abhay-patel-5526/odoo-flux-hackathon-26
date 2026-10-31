@@ -1,0 +1,151 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}My Portal{% endblock %}
+{% block page_heading %}My Account{% endblock %}
+{% block page_description %}Manage your Brightloop subscriptions and billing information.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/portal.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="portal-page">
+
+    <section class="portal-welcome">
+        <div>
+            <span class="portal-eyebrow">CUSTOMER PORTAL</span>
+            <h2>Welcome, {{ current_user.name }}!</h2>
+            <p>Here's an overview of your subscriptions and billing.</p>
+        </div>
+    </section>
+
+    <div class="portal-stats-grid">
+        <div class="portal-stat-card">
+            <span class="portal-stat-label">Active subscriptions</span>
+            <strong>{{ active_subscriptions|default(0) }}</strong>
+        </div>
+
+        <div class="portal-stat-card">
+            <span class="portal-stat-label">Total subscriptions</span>
+            <strong>{{ total_subscriptions|default(0) }}</strong>
+        </div>
+
+        <div class="portal-stat-card">
+            <span class="portal-stat-label">Total invoices</span>
+            <strong>{{ total_invoices|default(0) }}</strong>
+        </div>
+
+        <div class="portal-stat-card portal-stat-highlight">
+            <span class="portal-stat-label">Outstanding balance</span>
+            <strong>₹{{ "%.2f"|format(outstanding_balance|default(0)) }}</strong>
+        </div>
+    </div>
+
+    <section class="portal-panel">
+        <div class="portal-panel-heading">
+            <div>
+                <h3>My subscriptions</h3>
+                <p>Your current subscription plans.</p>
+            </div>
+
+            <a href="{{ url_for('portal.subscriptions') }}" class="portal-text-link">
+                View all →
+            </a>
+        </div>
+
+        {% if recent_subscriptions %}
+        <div class="portal-table-wrap">
+            <table class="portal-table">
+                <thead>
+                    <tr>
+                        <th>Subscription</th>
+                        <th>Plan</th>
+                        <th>Start date</th>
+                        <th>Next billing</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for subscription in recent_subscriptions %}
+                    <tr>
+                        <td><strong>{{ subscription.number }}</strong></td>
+                        <td>{{ subscription.plan.name if subscription.plan else '—' }}</td>
+                        <td>{{ subscription.start_date.strftime('%d %b %Y') if subscription.start_date else '—' }}</td>
+                        <td>{{ subscription.next_billing_date.strftime('%d %b %Y') if subscription.next_billing_date else '—' }}</td>
+                        <td>
+                            <span class="portal-status portal-status-{{ subscription.status }}">
+                                {{ subscription.status.replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="portal-empty">
+            <p>You don't have any subscriptions yet.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="portal-panel">
+        <div class="portal-panel-heading">
+            <div>
+                <h3>Recent invoices</h3>
+                <p>Your latest billing documents.</p>
+            </div>
+
+            <a href="{{ url_for('portal.invoices') }}" class="portal-text-link">
+                View all →
+            </a>
+        </div>
+
+        {% if recent_invoices %}
+        <div class="portal-table-wrap">
+            <table class="portal-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Issue date</th>
+                        <th>Due date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for invoice in recent_invoices %}
+                    <tr>
+                        <td><strong>{{ invoice.number }}</strong></td>
+                        <td>{{ invoice.issue_date.strftime('%d %b %Y') }}</td>
+                        <td>{{ invoice.due_date.strftime('%d %b %Y') }}</td>
+                        <td>₹{{ "%.2f"|format(invoice.total) }}</td>
+                        <td>
+                            <span class="portal-status portal-status-{{ 'overdue' if invoice.is_overdue else invoice.status }}">
+                                {{ 'Overdue' if invoice.is_overdue else invoice.status.replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('portal.invoice_detail', invoice_id=invoice.id) }}"
+                               class="portal-text-link">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="portal-empty">
+            <p>No invoices available yet.</p>
+        </div>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/portal.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,33 @@
+# Environment variables
+.env
+.env.*
+
+# Keep example environment files
+!.env.example
+!.flaskenv.example
+
+# Virtual environments
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.my_pycache/
+
+# Flask database and instance data
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

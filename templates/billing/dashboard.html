@@ -1,0 +1,127 @@
+{% extends "dashboard/_layout.html" %}
+
+{% block page_title %}Recurring Billing{% endblock %}
+{% block page_heading %}Recurring Billing{% endblock %}
+{% block page_description %}Manage subscription renewals and recurring invoice generation.{% endblock %}
+
+{% block product_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/billing.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="billing-page">
+
+    <div class="billing-toolbar">
+        <div>
+            <h3>Billing overview</h3>
+            <p>Review subscriptions that are due for billing.</p>
+        </div>
+
+        <a href="{{ url_for('billing.history') }}" class="billing-btn billing-btn-secondary">
+            Billing history
+        </a>
+    </div>
+
+    <div class="billing-stats-grid">
+        <div class="billing-stat-card">
+            <span class="billing-stat-label">Due subscriptions</span>
+            <strong>{{ due_count|default(0) }}</strong>
+            <span class="billing-stat-description">Ready for invoice generation</span>
+        </div>
+
+        <div class="billing-stat-card">
+            <span class="billing-stat-label">Invoices generated</span>
+            <strong>{{ generated_count|default(0) }}</strong>
+            <span class="billing-stat-description">Generated in this period</span>
+        </div>
+
+        <div class="billing-stat-card">
+            <span class="billing-stat-label">Billing records</span>
+            <strong>{{ total_records|default(0) }}</strong>
+            <span class="billing-stat-description">Recorded billing periods</span>
+        </div>
+    </div>
+
+    <section class="billing-panel">
+        <div class="billing-panel-heading">
+            <div>
+                <h3>Subscriptions due</h3>
+                <p>These subscriptions are eligible for recurring invoice generation.</p>
+            </div>
+
+            <span class="billing-count">{{ due_subscriptions|length }} found</span>
+        </div>
+
+        {% if due_subscriptions %}
+        <div class="billing-table-wrap">
+            <table class="billing-table">
+                <thead>
+                    <tr>
+                        <th>Subscription</th>
+                        <th>Customer</th>
+                        <th>Plan</th>
+                        <th>Next billing date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for subscription in due_subscriptions %}
+                    <tr>
+                        <td>
+                            <strong>{{ subscription.number }}</strong>
+                        </td>
+
+                        <td>
+                            {{ subscription.customer.company_name or subscription.customer.user.name }}
+                        </td>
+
+                        <td>{{ subscription.plan.name if subscription.plan else '—' }}</td>
+
+                        <td>
+                            {{ subscription.next_billing_date.strftime('%d %b %Y') if subscription.next_billing_date else '—' }}
+                        </td>
+
+                        <td>
+                            <span class="billing-status billing-status-{{ subscription.status }}">
+                                {{ subscription.status.replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="billing-generate-area">
+            <div>
+                <strong>{{ due_subscriptions|length }} subscriptions ready</strong>
+                <p>Invoices will be generated for eligible billing periods.</p>
+            </div>
+
+            <form method="POST"
+                  action="{{ url_for('billing.generate_invoices') }}"
+                  onsubmit="return confirm('Generate invoices for all eligible subscriptions?');">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <button type="submit" class="billing-btn billing-btn-primary">
+                    Generate invoices
+                </button>
+            </form>
+        </div>
+
+        {% else %}
+        <div class="billing-empty">
+            <div class="billing-empty-icon">✓</div>
+            <h3>All caught up!</h3>
+            <p>There are currently no subscriptions due for billing.</p>
+        </div>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}
+{% block product_scripts %}
+<script src="{{ url_for('static', filename='js/billing.js') }}" defer></script>
+{% endblock %}

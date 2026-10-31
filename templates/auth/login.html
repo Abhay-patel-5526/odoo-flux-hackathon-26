@@ -1,0 +1,212 @@
+
+{% extends "auth/_layout.html" %}
+
+{% block page_title %}Login{% endblock %}
+
+{% block auth_content %}
+
+<div class="auth-header">
+    <h1>Welcome back</h1>
+    <p>Sign in to continue to your Brightloop account.</p>
+</div>
+
+<form method="POST" action="{{ url_for('auth.login') }}">
+
+    <input
+    type="hidden"
+    name="csrf_token"
+    value="{{ csrf_token() }}"
+>
+
+    <!-- EMAIL -->
+    <div class="form-group">
+        <label for="email" class="form-label">
+            Email address
+        </label>
+
+        <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-control"
+            placeholder="you@example.com"
+            autocomplete="email"
+            maxlength="254"
+            required
+            autofocus
+        >
+    </div>
+
+    <!-- PASSWORD -->
+    <div class="form-group">
+
+        <div class="form-row">
+            <label for="password" class="form-label">
+                Password
+            </label>
+
+            <a href="{{ url_for('auth.forgot_password') }}"
+               class="text-small">
+                Forgot password?
+            </a>
+        </div>
+
+        <div class="password-wrapper">
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+            >
+
+            <button
+                type="button"
+                class="password-toggle"
+                id="togglePassword"
+                aria-label="Show password"
+                aria-pressed="false"
+            >
+                Show
+            </button>
+
+        </div>
+    </div>
+
+    <!-- REMEMBER ME -->
+    <div class="form-row remember-row">
+
+        <label class="checkbox-group">
+            <input
+                type="checkbox"
+                name="remember"
+                id="remember"
+            >
+            Remember me
+        </label>
+
+    </div>
+
+    <!-- SUBMIT -->
+    <button
+        type="submit"
+        class="btn btn-primary login-button"
+        id="loginButton"
+    >
+        Sign in
+        <span aria-hidden="true">&rarr;</span>
+    </button>
+
+</form>
+
+<div class="auth-divider"></div>
+
+<div class="auth-footer">
+    Don't have an account?
+    <a href="{{ url_for('auth.register') }}">
+        Create an account
+    </a>
+</div>
+
+{% endblock %}
+
+
+{% block extra_head %}
+
+<style>
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-wrapper .form-control {
+        padding-right: 75px;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 650;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    .password-toggle:hover {
+        color: var(--primary-dark);
+    }
+
+    .remember-row {
+        margin: 5px 0 23px;
+    }
+
+    .login-button {
+        gap: 10px;
+    }
+
+    .login-button span {
+        font-size: 19px;
+        transition: transform 0.2s;
+    }
+
+    .login-button:hover span {
+        transform: translateX(4px);
+    }
+
+</style>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script>
+
+    // Show / hide password
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+
+    togglePassword.addEventListener("click", function () {
+
+        const isHidden = passwordInput.type === "password";
+
+        passwordInput.type = isHidden ? "text" : "password";
+
+        this.textContent = isHidden ? "Hide" : "Show";
+
+        this.setAttribute("aria-pressed", String(isHidden));
+
+        this.setAttribute(
+            "aria-label",
+            isHidden ? "Hide password" : "Show password"
+        );
+
+    });
+
+
+    // Prevent accidental double submission
+    const loginForm = document.querySelector("form");
+    const loginButton = document.getElementById("loginButton");
+
+    loginForm.addEventListener("submit", function () {
+
+        if (!loginForm.checkValidity()) {
+            return;
+        }
+
+        loginButton.disabled = true;
+        loginButton.textContent = "Signing in...";
+
+    });
+
+</script>
+
+{% endblock %}
